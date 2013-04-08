@@ -41,117 +41,28 @@
  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH, THE
  SOFTWARE OR THE USE OF, OR OTHER DEALINGS IN, THE SOFTWARE.
-*/
+ */
 
 
-// Author: Peter Baumgartner
+// Author: Pierre Bernard
 
 
 //----------------------------------------------------------------------------------------------------------------------
 
 
 #pragma mark HEADERS
-	
-#import "IMBMetadataTransformer.h"
-	
+
+#import "IMBLightroomParser.h"
 
 
-//----------------------------------------------------------------------------------------------------------------------
-
-
-#pragma mark
-
-@implementation IMBMetadataTransformer
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-// Register the transformer...
-
-+ (void) load
+@interface IMBLightroom3or4Parser : IMBLightroomParser
 {
-	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	IMBMetadataTransformer* transformer = [[IMBMetadataTransformer alloc] init];
-	[NSValueTransformer setValueTransformer:transformer forName:NSStringFromClass(self)];
-	[transformer release];
-	[pool drain];
+	
 }
 
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-+ (Class) transformedValueClass
-{
-	return [NSString class];
-}
-
-
-+ (BOOL) allowsReverseTransformation
-{
-	return NO;
-}
-		
-
-//----------------------------------------------------------------------------------------------------------------------
-
-
-// Convert from NSNumber to NSString...
-
-- (id) transformedValue:(id)inValue
-{
-	id result = nil;
-	
-	if (inValue)
-	{
-		if ([inValue isKindOfClass:[NSDictionary class]]) 
-		{
-			NSDictionary* metadata = (NSDictionary*)inValue;
-			NSNumber* width = [metadata objectForKey:@"width"];
-			NSNumber* height = [metadata objectForKey:@"height"];
-
-			if ([width integerValue] != 0 && [height integerValue] != 0)
-			{
-				result = [NSString stringWithFormat:@"%ld×%ld",[width longValue],[height longValue]];
-			} else {
-				result = @"";
-			}
-
-		}
-	}
-	
-	return result;
-}
-
-
-// Convert from NSString to NSNumber...
-
-//- (id) reverseTransformedValue:(id)inValue
-//{
-//	double t = 0.0;
-//	
-//	if (inValue != nil && [inValue isKindOfClass:[NSString class]])
-//	{
-//		NSArray* parts = [(NSString*)inValue componentsSeparatedByString:@":"];
-//		NSInteger n = [parts count];
-//		double multiplier = 1.0;
-//		
-//		for (NSInteger i=n-1; i>=0; i--)
-//		{
-//			NSString* string = [parts objectAtIndex:i];
-//			double value = [string doubleValue];
-//			t += value * multiplier;
-//			multiplier *= 60.0;
-//		}
-//	}
-//	
-//	return [NSNumber numberWithDouble:t];
-//}
-	
-
-//----------------------------------------------------------------------------------------------------------------------
-
+- (NSNumber*) databaseVersion;
 
 @end
-	
+
+
+//----------------------------------------------------------------------------------------------------------------------

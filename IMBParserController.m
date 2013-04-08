@@ -190,12 +190,6 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 	if (self = [super init])
 	{
 		_loadingCustomParsers = NO;
-		
-		[[NSNotificationCenter defaultCenter]				// Unload parsers before we quit, so that custom have 
-			addObserver:self								// a chance to clean up (e.g. remove callbacks, etc...)
-			selector:@selector(reset) 
-			name:NSApplicationWillTerminateNotification 
-			object:nil];
 	}
 	
 	return self;
@@ -204,8 +198,7 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 
 - (void) dealloc
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[self reset];
+	[self reset];   // -reset calls through to the delegate. A proper client will have set the delegate to nil if this is being deallocated though
 	[super dealloc];
 }
 
@@ -355,7 +348,7 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 {
 	if (_loadedParsers != nil && _loadingCustomParsers == NO)
 	{
-		NSMutableDictionary* prefs = [IMBConfig prefsForClass:[self class]];
+		NSMutableDictionary* prefs = [NSMutableDictionary dictionaryWithDictionary:[IMBConfig prefsForClass:[self class]]];
 		NSMutableArray* customParsers = [NSMutableArray array];
 		
 		for (NSString* mediaType in _loadedParsers)
@@ -391,7 +384,7 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 {
 	_loadingCustomParsers = YES;
 	
-	NSMutableDictionary* prefs = [IMBConfig prefsForClass:[self class]];
+	NSDictionary* prefs = [IMBConfig prefsForClass:[self class]];
 	NSArray* customParsers = [prefs objectForKey:@"customParsers"];
 	
 	for (NSDictionary* info in customParsers)

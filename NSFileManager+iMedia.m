@@ -206,9 +206,8 @@
 	{
 		strcpy(tempFileNameCString, tempFileTemplateCString);
 
-		char *tmpName = mktemp(tempFileNameCString);
-		
-		tempFilePath = [NSString stringWithUTF8String:tmpName];	
+        mkstemp(tempFileNameCString);
+		tempFilePath = [NSString stringWithUTF8String:tempFileNameCString];	
 		
 		free(tempFileNameCString);
 	}
@@ -300,7 +299,7 @@
 				{
 					if (!exists)
 					{
-						newPath = [[NSString stringWithFormat:@"/Volumes/%@ %i",volName,i] stringByAppendingPathComponent:relPath];
+						newPath = [[NSString stringWithFormat:@"/Volumes/%@ %@",volName,@(i)] stringByAppendingPathComponent:relPath];
 						exists = [self fileExistsAtPath:newPath];
 						if (exists) break;
 					}
@@ -324,9 +323,9 @@
 {
 	NSString *filename = [NSString stringWithFormat:@"%@.%@", basename, extension];
     NSString *result = [path stringByAppendingPathComponent:filename];
-    NSInteger i = 1;
+    unsigned i = 1;
     while ([self fileExistsAtPath:result]) {
-        filename = [NSString stringWithFormat:@"%@ %ld.%@", basename, (long)i, extension];
+        filename = [NSString stringWithFormat:@"%@ %u.%@", basename, i, extension];
         result = [path stringByAppendingPathComponent:filename];
         i++;
     }    

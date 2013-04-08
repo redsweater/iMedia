@@ -91,6 +91,7 @@
 #define EVENTS_NODE_ID       UINT_MAX-4811	// Very, very unlikely this not to be unique throughout library
 #define FACES_NODE_ID        UINT_MAX-4812	// Very, very unlikely this not to be unique throughout library
 #define PHOTO_STREAM_NODE_ID UINT_MAX-4813	// Very, very unlikely this not to be unique throughout library
+#define ALL_PHOTOS_NODE_ID   UINT_MAX-4814	// Very, very unlikely this not to be unique throughout library
 
 // node object types of interest for skimming
 
@@ -129,6 +130,11 @@ extern NSString* const kIMBiPhotoNodeObjectTypeFace;  // = @"faces"
 // Returns the index of the all photos album ("Photos") in given album list
 
 - (NSUInteger) indexOfAllPhotosAlbumInAlbumList:(NSArray*)inAlbumList;
+
+// Returns the index of the projects album ("Projects") in given album list
+// Projects are to Aperture what events are to iPhoto - hence the method name for coherence
+
+- (NSUInteger) indexOfEventsAlbumInAlbumList:(NSArray*)inAlbumList;
 
 // Returns the index of the flagged album ("Flagged") in given album list
 
@@ -178,5 +184,11 @@ extern NSString* const kIMBiPhotoNodeObjectTypeFace;  // = @"faces"
 // Convert metadata into a human readable string...
 
 - (NSString*) metadataDescriptionForMetadata:(NSDictionary*)inMetadata;
+
+// Checks inKey whether it is a valid key in resource list and returns it if valid.
+// If not checks all other candidates for validity and returns the first that is valid.
+// If not returns nil.
+
+- (NSString *)validatedResourceKey:(NSString *)inKey relativeToResourceList:(NSDictionary *)inResources otherCandidates:(NSArray *)inKeyList;
 
 @end

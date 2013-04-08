@@ -9,16 +9,19 @@
 
 
 ARCHS = i386 x86_64
-SDKROOT = macosx10.6
 MACOSX_DEPLOYMENT_TARGET = 10.6
 PREBINDING = NO
 DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
 
 GCC_PREFIX_HEADER = iMedia.pch
 
-GCC_VERSION = com.apple.compilers.llvmgcc42
+GCC_VERSION = com.apple.compilers.llvm.clang.1_0
 GCC_ENABLE_OBJC_GC = unsupported
 GCC_C_LANGUAGE_STANDARD = c99
 GCC_WARN_ABOUT_RETURN_TYPE = YES
 GCC_WARN_UNUSED_VARIABLE = YES
 GCC_OPTIMIZATION_LEVEL = 0
+
+// keep debugging symbols in separate files
+GCC_GENERATE_DEBUGGING_SYMBOLS = YES
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym

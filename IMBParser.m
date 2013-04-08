@@ -44,7 +44,7 @@
 */
 
 
-// Author: Peter Baumgartner
+// Author: Peter Baumgartner, Mike Abdullah
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -58,7 +58,6 @@
 #import "IMBObjectsPromise.h"
 #import "IMBLibraryController.h"
 #import "NSString+iMedia.h"
-#import "NSData+SKExtensions.h"
 #import <Quartz/Quartz.h>
 #import <QTKit/QTKit.h>
 #import "NSURL+iMedia.h"
@@ -468,6 +467,11 @@
 	return nil;
 }
 
+
+#pragma mark
+#pragma mark Pasteboard
+
+- (void)didWriteObjects:(NSArray *)objects toPasteboard:(NSPasteboard *)pasteboard; { }
 
 //----------------------------------------------------------------------------------------------------------------------
 

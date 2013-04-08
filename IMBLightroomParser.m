@@ -73,7 +73,6 @@
 #import "IMBOrderedDictionary.h"
 #import "IMBParserController.h"
 #import "IMBPyramidObjectPromise.h"
-#import "NSData+SKExtensions.h"
 #import "NSFileManager+iMedia.h"
 #import "NSImage+iMedia.h"
 #import "NSString+iMedia.h"
@@ -97,10 +96,13 @@ static NSArray* sSupportedUTIs = nil;
 @implementation IMBLightroomObject
 
 @synthesize absolutePyramidPath = _absolutePyramidPath;
+@synthesize idLocal = _idLocal;
 
 - (id) init
 {
 	if ((self = [super init]) != nil) {
+		_absolutePyramidPath = nil;
+		_idLocal = nil;
 	}
 	
 	return self;
@@ -110,6 +112,7 @@ static NSArray* sSupportedUTIs = nil;
 {
 	if ((self = [super initWithCoder:inCoder]) != nil) {
 		self.absolutePyramidPath = [inCoder decodeObjectForKey:@"absolutePyramidPath"];
+		self.idLocal = [inCoder decodeObjectForKey:@"idLocal"];
 	}
 	
 	return self;
@@ -120,6 +123,7 @@ static NSArray* sSupportedUTIs = nil;
 	[super encodeWithCoder:inCoder];
 	
 	[inCoder encodeObject:self.absolutePyramidPath forKey:@"absolutePyramidPath"];
+	[inCoder encodeObject:self.idLocal forKey:@"idLocal"];
 }
 
 - (id) copyWithZone:(NSZone*)inZone
@@ -127,6 +131,7 @@ static NSArray* sSupportedUTIs = nil;
 	IMBLightroomObject* copy = [super copyWithZone:inZone];
 	
 	copy.absolutePyramidPath = self.absolutePyramidPath;
+	copy.idLocal = self.idLocal;
 	
 	return copy;
 }
@@ -134,6 +139,7 @@ static NSArray* sSupportedUTIs = nil;
 - (void) dealloc
 {
 	IMBRelease(_absolutePyramidPath);
+	IMBRelease(_idLocal);
 
 	[super dealloc];
 }
@@ -144,13 +150,24 @@ static NSArray* sSupportedUTIs = nil;
 
 // Use the path or URL as the unique identifier...
 
-- (NSString*) imageUID
+- (NSString*) identifier
 {
-	if (_absolutePyramidPath != nil) {
-		return _absolutePyramidPath;
+	/*
+	NSString* absolutePyramidPath = self.absolutePyramidPath;
+	
+	if (absolutePyramidPath != nil) {
+		NSString* parserName = self.parserClassName;
+		
+		return [NSString stringWithFormat:@"%@:/%@", parserName, absolutePyramidPath];
 	}
 	
-	return [super imageUID];
+	return [super identifier];
+	*/
+	
+	NSString* identifier = [super identifier];
+	
+	// Account for virtual copies
+	return [NSString stringWithFormat:@"%@/%@", identifier, self.idLocal];
 }
 
 @end
@@ -176,6 +193,7 @@ static NSArray* sSupportedUTIs = nil;
 - (NSArray*) supportedUTIs;
 - (BOOL) canOpenImageFileAtPath:(NSString*)inPath;
 - (IMBObject*) objectWithPath:(NSString*)inPath
+					  idLocal:(NSNumber*)idLocal
 						 name:(NSString*)inName
 				  pyramidPath:(NSString*)inPyramidPath
 					 metadata:(NSDictionary*)inMetadata
@@ -187,6 +205,7 @@ static NSArray* sSupportedUTIs = nil;
 - (NSString*) identifierWithCollectionId:(NSNumber*)inIdLocal;
 - (BOOL) isFolderNode:(IMBNode*)inNode;
 - (BOOL) isCollectionNode:(IMBNode*)inNode;
+- (BOOL) isRootCollectionNode:(IMBNode*)inNode;
 
 - (NSNumber*) rootFolderFromAttributes:(NSDictionary*)inAttributes;
 - (NSNumber*) idLocalFromAttributes:(NSDictionary*)inAttributes;
@@ -437,6 +456,11 @@ static NSArray* sSupportedUTIs = nil;
 		[self populateObjectsForCollectionNode:inNode];
 	}
 	
+	else if ([self isRootCollectionNode:inNode])
+	{
+		[self populateSubnodesForCollectionNode:inNode];
+	}
+
     else
     {
     	inNode.subNodes = [NSArray array];
@@ -825,6 +849,7 @@ static NSArray* sSupportedUTIs = nil;
 				}
 				
 				IMBObject* object = [self objectWithPath:path
+												 idLocal:idLocal
 													name:name
 											 pyramidPath:pyramidPath
 												metadata:metadata
@@ -899,6 +924,7 @@ static NSArray* sSupportedUTIs = nil;
 				}
 				
 				IMBObject* object = [self objectWithPath:path
+												 idLocal:idLocal
 													name:name
 											 pyramidPath:pyramidPath
 												metadata:metadata
@@ -951,6 +977,7 @@ static NSArray* sSupportedUTIs = nil;
 // Create a new IMBObject with the specified properties...
 
 - (IMBObject*) objectWithPath:(NSString*)inPath
+					  idLocal:(NSNumber*)idLocal
 						 name:(NSString*)inName
 				  pyramidPath:(NSString*)inPyramidPath
 					 metadata:(NSDictionary*)inMetadata
@@ -960,6 +987,7 @@ static NSArray* sSupportedUTIs = nil;
 	NSString* absolutePyramidPath = (inPyramidPath != nil) ? [self.dataPath stringByAppendingPathComponent:inPyramidPath] : nil;
 
 	object.absolutePyramidPath = absolutePyramidPath;
+	object.idLocal = idLocal;
 	object.location = (id)inPath;
 	object.name = inName;
 	object.preliminaryMetadata = inMetadata;	// This metadata was in the XML file and is available immediately
@@ -1095,40 +1123,52 @@ static NSArray* sSupportedUTIs = nil;
 	return pyramidPath;
 }
 
-- (NSData*)previewDataForObject:(IMBObject*)inObject
+- (NSData*)previewDataForObject:(IMBObject*)inObject maximumSize:(NSNumber*)maximumSize
 {
 	IMBLightroomObject* lightroomObject = (IMBLightroomObject*)inObject;
 	NSString* absolutePyramidPath = [lightroomObject absolutePyramidPath];
+	NSData* jpegData = nil;
 	
 	if (absolutePyramidPath != nil) {
 		FMDatabase *database = [self thumbnailDatabase];
 		
 		if (database != nil) {
-			NSNumber* targetWidth = [NSNumber numberWithDouble:_thumbnailSize.width];
-			NSNumber* targetHeight = [NSNumber numberWithDouble:_thumbnailSize.height];
 			NSDictionary* metadata = [lightroomObject preliminaryMetadata];
 			NSNumber* idLocal = [metadata objectForKey:@"idLocal"];
 			
 			@synchronized (database) {
-				NSString* query =	@" SELECT pcpl.dataOffset, pcpl.dataLength"
-									@" FROM Adobe_images ai"
-									@" INNER JOIN Adobe_previewCachePyramidLevels pcpl ON pcpl.pyramid = ai.pyramidIDCache"
-									@" WHERE ai.id_local = ?"
-									@" AND pcpl.height >= ?"
-									@" AND pcpl.width >= ?"
-									@" ORDER BY pcpl.height, pcpl.width ASC"
-									@" LIMIT 1";
+				FMResultSet* results = nil;
 				
-				FMResultSet* results = [database executeQuery:query, idLocal, targetWidth, targetHeight];
+				if (maximumSize != nil) {
+					NSString* query =	@" SELECT pcpl.dataOffset, pcpl.dataLength"
+					@" FROM Adobe_images ai"
+					@" INNER JOIN Adobe_previewCachePyramidLevels pcpl ON pcpl.pyramid = ai.pyramidIDCache"
+					@" WHERE ai.id_local = ?"
+					@" AND pcpl.height <= ?"
+					@" AND pcpl.width <= ?"
+					@" ORDER BY pcpl.height, pcpl.width DESC"
+					@" LIMIT 1";
+					
+					results = [database executeQuery:query, idLocal, maximumSize, maximumSize];
+				}
+				else {
+					NSString* query =	@" SELECT pcpl.dataOffset, pcpl.dataLength"
+					@" FROM Adobe_images ai"
+					@" INNER JOIN Adobe_previewCachePyramidLevels pcpl ON pcpl.pyramid = ai.pyramidIDCache"
+					@" WHERE ai.id_local = ?"
+					@" ORDER BY pcpl.height, pcpl.width DESC"
+					@" LIMIT 1";
+					
+					results = [database executeQuery:query, idLocal];
+				}
 				
 				if ([results next]) {				
 					double dataOffset = [results doubleForColumn:@"dataOffset"];
 					double dataLength = [results doubleForColumn:@"dataLength"];
 					
 					NSData* data = [NSData dataWithContentsOfMappedFile:absolutePyramidPath];
-					NSData* jpegData = [data subdataWithRange:NSMakeRange(dataOffset, dataLength)];
 					
-					return jpegData;
+					jpegData = [data subdataWithRange:NSMakeRange(dataOffset, dataLength)];
 				}
 				
 				[results close];
@@ -1136,14 +1176,14 @@ static NSArray* sSupportedUTIs = nil;
 		}
 	}
 	
-	return nil;
+	return jpegData;
 }
 
 
 - (id) loadThumbnailForObject:(IMBObject*)inObject
 {	
 	CGImageRef imageRepresentation = nil;
-	NSData *jpegData = [self previewDataForObject:inObject];
+	NSData *jpegData = [self previewDataForObject:inObject maximumSize:[NSNumber numberWithFloat:256.0]];
 	
 	if (jpegData != nil) {
 		CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)jpegData, nil);
@@ -1383,6 +1423,14 @@ static NSArray* sSupportedUTIs = nil;
     return (nodeType == IMBLightroomNodeTypeCollection);
 }
 
+
+- (BOOL) isRootCollectionNode:(IMBNode*)inNode
+{
+    NSDictionary* attributes = inNode.attributes;
+    IMBLightroomNodeType nodeType = [self nodeTypeFromAttributes:attributes];
+    
+    return (nodeType == IMBLightroomNodeTypeRootCollection);
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 

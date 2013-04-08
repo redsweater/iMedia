@@ -94,7 +94,6 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 - (void) _setPreferences:(NSMutableDictionary*)inDict;
 - (void) _saveStateToPreferences;
 - (void) _loadStateFromPreferences;
-- (NSMutableArray*) _expandedNodeIdentifiers;
 
 - (void) _nodesWillChange;
 - (void) _nodesDidChange;
@@ -124,7 +123,17 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 
 @synthesize libraryController = _libraryController;
 @synthesize nodeTreeController = ibNodeTreeController;
+
 @synthesize selectedNodeIdentifier = _selectedNodeIdentifier;
+- (void)setSelectedNodeIdentifier:(NSString *)identifier;
+{
+    identifier = [identifier copy];
+    [_selectedNodeIdentifier release]; _selectedNodeIdentifier = identifier;
+    
+    // Persist
+    [self _saveStateToPreferences];
+}
+
 @synthesize expandedNodeIdentifiers = _expandedNodeIdentifiers;
 @synthesize selectedParser = _selectedParser;
 
@@ -157,7 +166,7 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 	NSMutableDictionary* stateDict = [NSMutableDictionary dictionary];
 	[stateDict setObject:expandedNodeIdentifiers forKey:@"expandedNodeIdentifiers"];
 
-	NSMutableDictionary* classDict = [IMBConfig prefsForClass:self.class];
+	NSMutableDictionary* classDict = [NSMutableDictionary dictionaryWithDictionary:[IMBConfig prefsForClass:self.class]];
 	[classDict setObject:stateDict forKey:kIMBMediaTypeImage];
 	[classDict setObject:stateDict forKey:kIMBMediaTypeAudio];
 	[classDict setObject:stateDict forKey:kIMBMediaTypeMovie];
@@ -197,30 +206,11 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 //----------------------------------------------------------------------------------------------------------------------
 
 
-- (id) initWithNibName:(NSString*)inNibName bundle:(NSBundle*)inBundle
-{
-	if (self = [super initWithNibName:inNibName bundle:inBundle])
-	{
-		_selectedNodeIdentifier = nil;
-		_expandedNodeIdentifiers = nil;
-		_isRestoringState = NO;
-	}
-	
-	return self;
-}
-
-
 - (void) awakeFromNib
 {
 	// We need to save preferences before tha app quits...
 	
-	[[NSNotificationCenter defaultCenter] 
-		addObserver:self 
-		selector:@selector(_saveStateToPreferences) 
-		name:NSApplicationWillTerminateNotification 
-		object:nil];
-	
-	[[NSNotificationCenter defaultCenter] 
+	[[NSNotificationCenter defaultCenter]
 		addObserver:self 
 		selector:@selector(_revealNodeWithIdentifier:) 
 		name:kIMBRevealNodeWithIdentifierNotification 
@@ -363,14 +353,14 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 
 - (NSMutableDictionary*) _preferences
 {
-	NSMutableDictionary* classDict = [IMBConfig prefsForClass:self.class];
+	NSDictionary* classDict = [IMBConfig prefsForClass:self.class];
 	return [NSMutableDictionary dictionaryWithDictionary:[classDict objectForKey:self.mediaType]];
 }
 
 
 - (void) _setPreferences:(NSMutableDictionary*)inDict
 {
-	NSMutableDictionary* classDict = [IMBConfig prefsForClass:self.class];
+	NSMutableDictionary* classDict = [NSMutableDictionary dictionaryWithDictionary:[IMBConfig prefsForClass:self.class]];
 	if (inDict) [classDict setObject:inDict forKey:self.mediaType];
 	[IMBConfig setPrefs:classDict forClass:self.class];
 }
@@ -399,9 +389,9 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 
 - (void) _loadStateFromPreferences
 {
-	NSMutableDictionary* stateDict = [self _preferences];
+	NSDictionary* stateDict = [[IMBConfig prefsForClass:self.class] objectForKey:self.mediaType];
 	
-	self.expandedNodeIdentifiers = [NSMutableArray arrayWithArray:[stateDict objectForKey:@"expandedNodeIdentifiers"]];
+	self.expandedNodeIdentifiers = [stateDict objectForKey:@"expandedNodeIdentifiers"];
 	self.selectedNodeIdentifier = [stateDict objectForKey:@"selectedNodeIdentifier"];
 	
 	float splitviewPosition = [[stateDict objectForKey:@"splitviewPosition"] floatValue];
@@ -538,24 +528,27 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 // pending populate operation for the nodes that were just collapsed...
 	
 
-- (void) _setExpandedNodeIdentifiers
+- (void) _setExpandedNodeIdentifiersFromOutlineView
 {
 	if (!_isRestoringState && !self.libraryController.isReplacingNode)
 	{
 		self.expandedNodeIdentifiers = [self _expandedNodeIdentifiers];
+        
+        // Persist
+        [self _saveStateToPreferences];
 	}
 }
 
 
 - (void) outlineViewItemDidExpand:(NSNotification*)inNotification
 {
-	[self _setExpandedNodeIdentifiers];
+	[self _setExpandedNodeIdentifiersFromOutlineView];
 }
 
 
 - (void) outlineViewItemDidCollapse:(NSNotification*)inNotification
 {
-	[self _setExpandedNodeIdentifiers];
+	[self _setExpandedNodeIdentifiersFromOutlineView];
 
 	id item = [[inNotification userInfo] objectForKey:@"NSObject"];
 	IMBNode* node = [item representedObject];
@@ -685,6 +678,19 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 	return node.isGroup;
 }
 
+- (BOOL)respondsToSelector:(SEL)aSelector;
+{
+    // I found that (slightly weirdly), if you implement -outlineView:isGroupItem:, NSOutlineView assumes that you must have at least one group item somewhere in the tree, and so it automatically outdents all but the top-level nodes by 1. Thus if configured not to show group nodes, we need to pretend that method doesn't even exist so as to receive regular layout
+    if (aSelector == @selector(outlineView:isGroupItem:))
+    {
+        return [IMBConfig showsGroupNodes];
+    }
+    else
+    {
+        return [super respondsToSelector:aSelector];
+    }
+}
+
 
 #pragma mark NSOutlineViewDataSource
 
@@ -752,7 +758,7 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 // Get the identifiers of all currently expanded nodes. The result is a flat array, which is needed in the method
 // _restoreUserInterfaceState to try to restore the state of the user interface...
 
-- (NSMutableArray*) _expandedNodeIdentifiers
+- (NSArray*) _expandedNodeIdentifiers
 {
 	NSMutableArray* expandedNodeIdentifiers = [NSMutableArray array];
 	
@@ -969,7 +975,7 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 		{
 			id item = [ibNodeOutlineView itemAtRow:i];
 			[ibNodeOutlineView expandItem:item];
-			[self _setExpandedNodeIdentifiers];
+			[self _setExpandedNodeIdentifiersFromOutlineView];
 			break;
 		}
 	}
@@ -1080,26 +1086,22 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 	[panel setCanChooseFiles:NO];
 	[panel setResolvesAliases:YES];
 
-	NSWindow* window = [ibSplitView window];
-	[panel beginSheetForDirectory:nil file:nil types:nil modalForWindow:window modalDelegate:self didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) contextInfo:NULL];
-}
-
-
-// Add a root node for this each folder and the reload the library...
-	
-- (void) openPanelDidEnd:(NSOpenPanel*)inPanel returnCode:(int)inReturnCode contextInfo:(void*)inContextInfo
-{
-	if (inReturnCode == NSOKButton)
-	{
-		NSArray* paths = [inPanel filenames];
-		for (NSString* path in paths)
-		{
-			IMBParser* parser = [self.libraryController addCustomRootNodeForFolder:path];
-			self.selectedNodeIdentifier = [parser identifierForPath:path];
-		}	
-		
-		[self.libraryController reload];
-	}
+	[panel beginSheetModalForWindow:[ibSplitView window] completionHandler:^(NSInteger result) {
+        
+        // Add a root node for this each folder and the reload the library...
+        if (result == NSFileHandlingPanelOKButton)
+        {
+            NSArray *urls = [panel URLs];
+            for (NSURL *aURL in urls)
+            {
+                NSString *path = [aURL path];
+                IMBParser* parser = [self.libraryController addCustomRootNodeForFolder:path];
+                self.selectedNodeIdentifier = [parser identifierForPath:path];
+            }	
+            
+            [self.libraryController reload];
+        }
+    }];
 }
 
 
@@ -1610,7 +1612,7 @@ static NSString* kIMBSelectNodeWithIdentifierNotification = @"IMBSelectNodeWithI
 		IMBNode* node = [_libraryController nodeWithIdentifier:identifier];
 		NSInteger i = [self _revealNode:node];
 		if (i != NSNotFound) [ibNodeOutlineView scrollRowToVisible:i];
-		[self _setExpandedNodeIdentifiers];
+		[self _setExpandedNodeIdentifiersFromOutlineView];
 	}
 }
 
