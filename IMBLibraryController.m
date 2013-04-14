@@ -717,12 +717,6 @@ static NSMutableDictionary* sLibraryControllers = nil;
 		return;
 	}
 	
-	if (inOldNode != nil && inOldNode.parentNode == nil)
-	{
-		NSLog(@"%s inOldNode has already been removed. This was problably a race condition...",__FUNCTION__);
-		return;
-	}
-	
 	// Tell user interface that we are going to modify the data model...
 	
 	_isReplacingNode = YES;
