@@ -112,17 +112,17 @@
 		30FD64671546AF6E0036BDE2 /* NSPasteboard+iMedia.m in Sources */ = {isa = PBXBuildFile; fileRef = 30FD64651546AF6E0036BDE2 /* NSPasteboard+iMedia.m */; };
 		30FD646B1546BAE90036BDE2 /* IMBApertureHeaderViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8FCA064112368388009072AE /* IMBApertureHeaderViewController.m */; };
 		30FFEBFE150A0AA70009C1D0 /* im.edia.iPhoto.xpc in Copy XPCServices */ = {isa = PBXBuildFile; fileRef = 30FFEBEC150A08DB0009C1D0 /* im.edia.iPhoto.xpc */; };
-		65E26F8217136803000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8317136803000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8417136803000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8517136803000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8617136803000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8717136803000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8817136804000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8917136804000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8A17136829000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8B17136829000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
-		65E26F8C1713682A000994C3 /* iMedia.stub in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E26F7E17136803000994C3 /* iMedia.stub */; };
+		65D10B2F171C86BB00ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B30171C871500ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B31171C871A00ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B32171C873000ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B33171C873500ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B34171C873B00ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B35171C874500ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B36171C874900ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B37171C875100ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B38171C875800ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
+		65D10B39171C875E00ED5733 /* iMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DC2EF5B0486A6940098B216 /* iMedia.framework */; };
 		8DC2EF570486A6940098B216 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */; };
 		8F47B39110C416050013ED25 /* IMBOrderedDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = 8F47B38F10C416050013ED25 /* IMBOrderedDictionary.h */; };
 		8F47B39210C416050013ED25 /* IMBOrderedDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F47B39010C416050013ED25 /* IMBOrderedDictionary.m */; };
@@ -521,6 +521,83 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		65D10B13171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0E96CEE1518C9BF004F3EE7;
+			remoteInfo = im.edia.Folder;
+		};
+		65D10B15171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 30FFEBEB150A08DB0009C1D0;
+			remoteInfo = im.edia.iPhoto;
+		};
+		65D10B17171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D399D152ACD1300E30C43;
+			remoteInfo = im.edia.Aperture;
+		};
+		65D10B19171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D39AE152ACD2400E30C43;
+			remoteInfo = im.edia.Lightroom;
+		};
+		65D10B1B171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D39BF152ACD3300E30C43;
+			remoteInfo = im.edia.Flickr;
+		};
+		65D10B1D171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0F2DDBC152485130059DF8D;
+			remoteInfo = im.edia.iTunes;
+		};
+		65D10B1F171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D054AFEE152984FA00EBFA1C;
+			remoteInfo = im.edia.GarageBand;
+		};
+		65D10B21171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D39D0152ACD5E00E30C43;
+			remoteInfo = im.edia.Safari;
+		};
+		65D10B23171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D39E1152ACD6800E30C43;
+			remoteInfo = im.edia.Firefox;
+		};
+		65D10B25171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D3A05152AD0D000E30C43;
+			remoteInfo = im.edia.Chrome;
+		};
+		65D10B27171C864F00ED5733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D05D39F2152ACD8800E30C43;
+			remoteInfo = im.edia.FSEvents;
+		};
 		65E26F2517135C95000994C3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 65E26F1D17135C95000994C3 /* XPCKit.xcodeproj */;
@@ -583,83 +660,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6A8666480F9593B200325E1C;
 			remoteInfo = "ObjectiveFlickr (framework)";
-		};
-		65E26F8D1713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D0E96CEE1518C9BF004F3EE7;
-			remoteInfo = im.edia.Folder;
-		};
-		65E26F8F1713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 30FFEBEB150A08DB0009C1D0;
-			remoteInfo = im.edia.iPhoto;
-		};
-		65E26F911713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D399D152ACD1300E30C43;
-			remoteInfo = im.edia.Aperture;
-		};
-		65E26F931713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D39AE152ACD2400E30C43;
-			remoteInfo = im.edia.Lightroom;
-		};
-		65E26F951713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D39BF152ACD3300E30C43;
-			remoteInfo = im.edia.Flickr;
-		};
-		65E26F971713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D0F2DDBC152485130059DF8D;
-			remoteInfo = im.edia.iTunes;
-		};
-		65E26F991713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D054AFEE152984FA00EBFA1C;
-			remoteInfo = im.edia.GarageBand;
-		};
-		65E26F9B1713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D39D0152ACD5E00E30C43;
-			remoteInfo = im.edia.Safari;
-		};
-		65E26F9D1713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D39E1152ACD6800E30C43;
-			remoteInfo = im.edia.Firefox;
-		};
-		65E26F9F1713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D3A05152AD0D000E30C43;
-			remoteInfo = im.edia.Chrome;
-		};
-		65E26FA11713685B000994C3 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0867D690FE84028FC02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D05D39F2152ACD8800E30C43;
-			remoteInfo = im.edia.FSEvents;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1204,7 +1204,7 @@
 				D0904DE9152D717E003FDD08 /* Foundation.framework in Frameworks */,
 				D0E69CD0151C5576002FE181 /* Quartz.framework in Frameworks */,
 				3089F94D151C91E400D56DC0 /* XPCKit.framework in Frameworks */,
-				65E26F8B17136829000994C3 /* iMedia.stub in Frameworks */,
+				65D10B31171C871A00ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1232,7 +1232,7 @@
 				D0904DEE152D7181003FDD08 /* Foundation.framework in Frameworks */,
 				D054AFF5152984FA00EBFA1C /* Quartz.framework in Frameworks */,
 				D054AFF7152984FA00EBFA1C /* XPCKit.framework in Frameworks */,
-				65E26F8517136803000994C3 /* iMedia.stub in Frameworks */,
+				65D10B35171C874500ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1243,7 +1243,7 @@
 				D0904DEA152D717F003FDD08 /* Foundation.framework in Frameworks */,
 				D05D39A4152ACD1300E30C43 /* Quartz.framework in Frameworks */,
 				D05D39A6152ACD1300E30C43 /* XPCKit.framework in Frameworks */,
-				65E26F8A17136829000994C3 /* iMedia.stub in Frameworks */,
+				65D10B30171C871500ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1254,7 +1254,7 @@
 				D0904DEB152D717F003FDD08 /* Foundation.framework in Frameworks */,
 				D05D39B5152ACD2400E30C43 /* Quartz.framework in Frameworks */,
 				D05D39B7152ACD2400E30C43 /* XPCKit.framework in Frameworks */,
-				65E26F8217136803000994C3 /* iMedia.stub in Frameworks */,
+				65D10B32171C873000ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1266,7 +1266,7 @@
 				D05D39C6152ACD3300E30C43 /* Quartz.framework in Frameworks */,
 				D05D39C8152ACD3300E30C43 /* XPCKit.framework in Frameworks */,
 				D0904DD8152D6F57003FDD08 /* ObjectiveFlickr.framework in Frameworks */,
-				65E26F8317136803000994C3 /* iMedia.stub in Frameworks */,
+				65D10B33171C873500ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1277,7 +1277,7 @@
 				D0904DEF152D7181003FDD08 /* Foundation.framework in Frameworks */,
 				D05D39D7152ACD5E00E30C43 /* Quartz.framework in Frameworks */,
 				D05D39D9152ACD5E00E30C43 /* XPCKit.framework in Frameworks */,
-				65E26F8617136803000994C3 /* iMedia.stub in Frameworks */,
+				65D10B36171C874900ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1288,7 +1288,7 @@
 				D0904DF0152D7182003FDD08 /* Foundation.framework in Frameworks */,
 				D05D39E8152ACD6800E30C43 /* Quartz.framework in Frameworks */,
 				D05D39EA152ACD6800E30C43 /* XPCKit.framework in Frameworks */,
-				65E26F8717136803000994C3 /* iMedia.stub in Frameworks */,
+				65D10B37171C875100ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1299,7 +1299,7 @@
 				D0904DF2152D7183003FDD08 /* Foundation.framework in Frameworks */,
 				D05D39F9152ACD8800E30C43 /* Quartz.framework in Frameworks */,
 				D05D39FB152ACD8800E30C43 /* XPCKit.framework in Frameworks */,
-				65E26F8917136804000994C3 /* iMedia.stub in Frameworks */,
+				65D10B39171C875E00ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1310,7 +1310,7 @@
 				D0904DF1152D7183003FDD08 /* Foundation.framework in Frameworks */,
 				D05D3A0C152AD0D000E30C43 /* Quartz.framework in Frameworks */,
 				D05D3A0E152AD0D000E30C43 /* XPCKit.framework in Frameworks */,
-				65E26F8817136804000994C3 /* iMedia.stub in Frameworks */,
+				65D10B38171C875800ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1331,7 +1331,7 @@
 				D0904DE8152D717E003FDD08 /* Foundation.framework in Frameworks */,
 				D0E69CD2151C5581002FE181 /* Quartz.framework in Frameworks */,
 				3089F94C151C91CE00D56DC0 /* XPCKit.framework in Frameworks */,
-				65E26F8C1713682A000994C3 /* iMedia.stub in Frameworks */,
+				65D10B2F171C86BB00ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1342,7 +1342,7 @@
 				D0904DED152D7180003FDD08 /* Foundation.framework in Frameworks */,
 				D0F2DDC3152485130059DF8D /* Quartz.framework in Frameworks */,
 				D0F2DDC5152485130059DF8D /* XPCKit.framework in Frameworks */,
-				65E26F8417136803000994C3 /* iMedia.stub in Frameworks */,
+				65D10B34171C873B00ED5733 /* iMedia.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2327,17 +2327,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				65E26F8E1713685B000994C3 /* PBXTargetDependency */,
-				65E26F901713685B000994C3 /* PBXTargetDependency */,
-				65E26F921713685B000994C3 /* PBXTargetDependency */,
-				65E26F941713685B000994C3 /* PBXTargetDependency */,
-				65E26F961713685B000994C3 /* PBXTargetDependency */,
-				65E26F981713685B000994C3 /* PBXTargetDependency */,
-				65E26F9A1713685B000994C3 /* PBXTargetDependency */,
-				65E26F9C1713685B000994C3 /* PBXTargetDependency */,
-				65E26F9E1713685B000994C3 /* PBXTargetDependency */,
-				65E26FA01713685B000994C3 /* PBXTargetDependency */,
-				65E26FA21713685B000994C3 /* PBXTargetDependency */,
 				65E26F4617135D21000994C3 /* PBXTargetDependency */,
 				65E26F3C17135D1A000994C3 /* PBXTargetDependency */,
 			);
@@ -2496,6 +2485,17 @@
 			buildRules = (
 			);
 			dependencies = (
+				65D10B14171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B16171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B18171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B1A171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B1C171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B1E171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B20171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B22171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B24171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B26171C864F00ED5733 /* PBXTargetDependency */,
+				65D10B28171C864F00ED5733 /* PBXTargetDependency */,
 			);
 			name = iMediaTester;
 			productName = TestApp;
@@ -3137,6 +3137,61 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		65D10B14171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0E96CEE1518C9BF004F3EE7 /* im.edia.Folder */;
+			targetProxy = 65D10B13171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B16171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 30FFEBEB150A08DB0009C1D0 /* im.edia.iPhoto */;
+			targetProxy = 65D10B15171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B18171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D399D152ACD1300E30C43 /* im.edia.Aperture */;
+			targetProxy = 65D10B17171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B1A171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D39AE152ACD2400E30C43 /* im.edia.Lightroom */;
+			targetProxy = 65D10B19171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B1C171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D39BF152ACD3300E30C43 /* im.edia.Flickr */;
+			targetProxy = 65D10B1B171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B1E171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0F2DDBC152485130059DF8D /* im.edia.iTunes */;
+			targetProxy = 65D10B1D171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B20171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D054AFEE152984FA00EBFA1C /* im.edia.GarageBand */;
+			targetProxy = 65D10B1F171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B22171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D39D0152ACD5E00E30C43 /* im.edia.Safari */;
+			targetProxy = 65D10B21171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B24171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D39E1152ACD6800E30C43 /* im.edia.Firefox */;
+			targetProxy = 65D10B23171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B26171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D3A05152AD0D000E30C43 /* im.edia.Chrome */;
+			targetProxy = 65D10B25171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
+		65D10B28171C864F00ED5733 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D05D39F2152ACD8800E30C43 /* im.edia.FSEvents */;
+			targetProxy = 65D10B27171C864F00ED5733 /* PBXContainerItemProxy */;
+		};
 		65E26F3C17135D1A000994C3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = XPCKit;
@@ -3146,61 +3201,6 @@
 			isa = PBXTargetDependency;
 			name = "ObjectiveFlickr (framework)";
 			targetProxy = 65E26F4517135D21000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F8E1713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D0E96CEE1518C9BF004F3EE7 /* im.edia.Folder */;
-			targetProxy = 65E26F8D1713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F901713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 30FFEBEB150A08DB0009C1D0 /* im.edia.iPhoto */;
-			targetProxy = 65E26F8F1713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F921713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D399D152ACD1300E30C43 /* im.edia.Aperture */;
-			targetProxy = 65E26F911713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F941713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D39AE152ACD2400E30C43 /* im.edia.Lightroom */;
-			targetProxy = 65E26F931713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F961713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D39BF152ACD3300E30C43 /* im.edia.Flickr */;
-			targetProxy = 65E26F951713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F981713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D0F2DDBC152485130059DF8D /* im.edia.iTunes */;
-			targetProxy = 65E26F971713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F9A1713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D054AFEE152984FA00EBFA1C /* im.edia.GarageBand */;
-			targetProxy = 65E26F991713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F9C1713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D39D0152ACD5E00E30C43 /* im.edia.Safari */;
-			targetProxy = 65E26F9B1713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26F9E1713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D39E1152ACD6800E30C43 /* im.edia.Firefox */;
-			targetProxy = 65E26F9D1713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26FA01713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D3A05152AD0D000E30C43 /* im.edia.Chrome */;
-			targetProxy = 65E26F9F1713685B000994C3 /* PBXContainerItemProxy */;
-		};
-		65E26FA21713685B000994C3 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D05D39F2152ACD8800E30C43 /* im.edia.FSEvents */;
-			targetProxy = 65E26FA11713685B000994C3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
