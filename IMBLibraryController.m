@@ -713,8 +713,14 @@ static NSMutableDictionary* sLibraryControllers = nil;
 	
 	if (inOldNode != nil && inOldNode.parentNode == nil)
 	{
-		NSLog(@"%s inOldNode has already been removed. This was problably a race condition...",__FUNCTION__);
-		return;
+		// Special case for top level nodes that have a group type "none" ... they are not required
+		// to have a parent node in order to belong and warrant replacement. So we only bail
+		// out if the node does have a group type or is not a top level node.
+		if (([inOldNode groupType] != kIMBGroupTypeNone) || ([inOldNode isTopLevelNode] == NO))
+		{
+			NSLog(@"%s inOldNode has already been removed. This was problably a race condition...",__FUNCTION__);
+			return;
+		}
 	}
 	
 	// Tell user interface that we are going to modify the data model...
