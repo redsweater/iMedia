@@ -3,4 +3,4 @@
 	url = git://github.com/iMediaSandboxing/objectiveflickr.git
 [submodule "XPCKit"]
 	path = XPCKit
-	url = git@github.com:iMediaSandboxing/XPCKit.git
+	url = git@github.com:redsweater/XPCKit.git
