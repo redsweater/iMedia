@@ -67,7 +67,7 @@
 	NSRect _clickedRect;
 }
 
-@property BOOL isGroupCell;
+@property (nonatomic) BOOL isGroupCell;
 @property (retain) IMBNode* node;
 @property (retain) NSImage* icon;
 @property (retain) NSImage* badgeIcon;
