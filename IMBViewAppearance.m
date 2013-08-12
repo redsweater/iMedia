@@ -51,6 +51,7 @@
 
 #import "IMBViewAppearance+iMediaPrivate.h"
 #import "NSObject+iMedia.h"
+#import "IMBTableView.h"
 
 @implementation IMBViewAppearance
 
