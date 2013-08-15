@@ -1,7 +1,7 @@
 /*
  iMedia Browser Framework <http://karelia.com/imedia/>
  
- Copyright (c) 2005-2012 by Karelia Software et al.
+ Copyright (c) 2005-2011 by Karelia Software et al.
  
  iMedia Browser is based on code originally developed by Jason Terhorst,
  further developed for Sandvox by Greg Hulands, Dan Wood, and Terrence Talbot.
@@ -21,7 +21,7 @@
  
 	Redistributions of source code must retain the original terms stated here,
 	including this list of conditions, the disclaimer noted below, and the
-	following copyright notice: Copyright (c) 2005-2012 by Karelia Software et al.
+	following copyright notice: Copyright (c) 2005-2011 by Karelia Software et al.
  
 	Redistributions in binary form must include, in an end-user-visible manner,
 	e.g., About window, Acknowledgments window, or similar, either a) the original
@@ -44,25 +44,42 @@
  */
 
 
-// Author: Pierre Bernard
+// Author: Peter Baumgartner, Mike Abdullah
 
 
 //----------------------------------------------------------------------------------------------------------------------
 
 
-#pragma mark HEADERS
+#import "IMBSandboxUtilities.h"
 
-#import "IMBLightroom3or4Parser.h"
+#include <pwd.h>
 
 
-// SANDBOXING: Requires com.apple.security.assets.pictures.read-only entitlment (provided user hasn't moved their photos elsewhere). Also com.apple.security.temporary-exception.shared-preference.read-only for com.adobe.Lightroom3
+//----------------------------------------------------------------------------------------------------------------------
 
-@interface IMBLightroom3Parser : IMBLightroom3or4Parser
+
+#pragma mark
+
+
+// Replacement function for NSHomeDirectory...
+
+NSURL* IMBHomeDirectoryURL()
 {
-	
+    const char *home = getpwuid(getuid())->pw_dir;
+    NSString *path = [[NSString alloc] initWithUTF8String:home];
+    NSURL *result = [NSURL fileURLWithPath:path isDirectory:YES];
+    [path release];
+    return result;
 }
 
-@end
-
 
 //----------------------------------------------------------------------------------------------------------------------
+
+
+BOOL IMBIsSandboxed()
+{
+    NSString *home = NSHomeDirectory();
+    NSURL *realHome = IMBHomeDirectoryURL();
+    return ![[home stringByStandardizingPath] isEqualToString:[realHome path]];
+}
+

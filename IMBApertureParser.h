@@ -58,6 +58,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 
+// SANDBOXING: Requires com.apple.security.assets.pictures.read-only entitlement (provided user hasn't moved their photos elsewhere). Also com.apple.security.temporary-exception.shared-preference.read-only for:
+//
+//  * com.apple.iApps
+//  * com.apple.Aperture
+
 #pragma mark 
 
 @interface IMBApertureParser : IMBAppleMediaParser
@@ -71,7 +76,7 @@
 @property (assign) BOOL placeholderParser;
 @property (retain) NSString* appPath;
 @property (assign) BOOL shouldDisplayLibraryName;
-@property (assign) NSInteger version;
+@property (assign, nonatomic) NSInteger version;
 
 @end
 

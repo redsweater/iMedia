@@ -62,6 +62,7 @@
 #import "NSWorkspace+iMedia.h"
 #import "NSFileManager+iMedia.h"
 #import "NSImage+iMedia.h"
+#import "IMBSandboxUtilities.h"
 #import <Quartz/Quartz.h>
 
 
@@ -204,8 +205,6 @@
 - (void) dealloc
 {
 	IMBRelease(_appPath);
-	IMBRelease(_plist);
-	IMBRelease(_modificationDate);
 	[super dealloc];
 }
 
@@ -409,9 +408,9 @@
 	NSString* nodePath = nil;
 	if (inIdSpace)
 	{
-		nodePath = [NSString stringWithFormat:@"/%lu/%@/%@/%@",[path hash],libraryName,inIdSpace,inId];
+		nodePath = [NSString stringWithFormat:@"/%lu/%@/%@/%@",(unsigned long)[path hash],libraryName,inIdSpace,inId];
 	} else {
-		nodePath = [NSString stringWithFormat:@"/%lu/%@/%@",[path hash],libraryName,inId];
+		nodePath = [NSString stringWithFormat:@"/%lu/%@/%@",(unsigned long)[path hash],libraryName,inId];
 	}
 	
 	return [self identifierForPath:nodePath];

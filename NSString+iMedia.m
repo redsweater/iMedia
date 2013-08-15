@@ -54,8 +54,6 @@
 
 #import "NSString+iMedia.h"
 #import "NSFileManager+iMedia.h"
-#include <openssl/bio.h>
-#include <openssl/evp.h>
 #include <sys/stat.h>
 
 
@@ -318,7 +316,7 @@
 	free(lhsBuf);
 	free(rhsBuf);
 	
-	return (CFComparisonResult) compareResult;
+	return (NSComparisonResult) compareResult;
 }
 
 - (NSString *)imb_resolvedPath
@@ -587,7 +585,7 @@
 				if (resolvedUrl != NULL)
 				{
 					resolvedPath =
-                    [(id)CFURLCopyFileSystemPath(resolvedUrl, kCFURLPOSIXPathStyle)
+                    [NSMakeCollectable(CFURLCopyFileSystemPath(resolvedUrl, kCFURLPOSIXPathStyle))
                      autorelease];
 					CFRelease(resolvedUrl);
 				}

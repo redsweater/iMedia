@@ -110,7 +110,7 @@
 
 // Library...
 
-@property (retain) IMBLibraryController* libraryController;
+@property (retain, nonatomic) IMBLibraryController* libraryController;
 @property (readonly) NSString* mediaType;
 
 // Nodes (sourcelist)...
@@ -124,7 +124,7 @@
 @property (retain) NSView* standardObjectView;
 @property (retain) NSView* customObjectView;
 
-@property (copy) NSString* selectedNodeIdentifier;
+@property (nonatomic, copy) NSString* selectedNodeIdentifier;
 @property (copy) NSArray* expandedNodeIdentifiers;
 @property (readonly) IMBNode* selectedNode;
 @property (retain) IMBParser* selectedParser;

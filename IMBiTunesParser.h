@@ -68,6 +68,8 @@
 
 #pragma mark 
 
+// SANDBOXING: Requires com.apple.security.assets.music.read-only entitlment (provided user hasn't moved their iTunes folder elsewhere). Also com.apple.security.temporary-exception.shared-preference.read-only for com.apple.iApps
+
 @interface IMBiTunesParser : IMBParser
 {
 	NSString* _appPath;
@@ -79,7 +81,7 @@
 }
 
 @property (retain) NSString* appPath;
-@property (retain) NSDictionary* plist;
+@property (retain, nonatomic) NSDictionary* plist;
 @property (retain) NSDate* modificationDate;
 @property (assign) BOOL shouldDisplayLibraryName;
 @property (assign) NSInteger version;

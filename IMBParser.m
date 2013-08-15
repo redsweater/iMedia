@@ -86,7 +86,7 @@
 @synthesize mediaSource = _mediaSource;
 @synthesize mediaType = _mediaType;
 @synthesize custom = _custom;
-
+@synthesize bookmarkData = _bookmark;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -125,6 +125,7 @@
 {
 	IMBRelease(_mediaSource);
 	IMBRelease(_mediaType);
+    [_bookmark release];
 
 	[super dealloc];
 }
@@ -171,10 +172,39 @@
 	return YES;
 }
 
+#if !IMB_COMPILING_WITH_LION_OR_NEWER_SDK
+#define NSURLBookmarkResolutionWithSecurityScope 0
+#endif
 
 - (void) willUseParser
 {
-
+    // The first time the parser is used, grant access to it. We keep this access then for the lifetime of the app since have no idea what other bits of a host app might be making use of files from the parser later on. (Dragging files in-app doesn't cause PowerBox to upgrade access to them in any way, so we're forced to effectively "leak" here)
+    dispatch_once(&_bookmarkAccessToken, ^{
+        NSData *bookmark = [self bookmarkData];
+        if (bookmark && [NSURL instancesRespondToSelector:@selector(startAccessingSecurityScopedResource)])
+        {
+            NSError *error = nil;   // must be nil, I've seen the routine fail but not fill in the error before
+            NSURL *url = [[NSURL alloc] initByResolvingBookmarkData:bookmark
+                                                            options:NSURLBookmarkResolutionWithSecurityScope
+                                                      relativeToURL:nil
+                                                bookmarkDataIsStale:NULL    // TODO: handle stale bookmark
+                                                              error:&error];
+            
+            if (url)
+            {
+                if (![url startAccessingSecurityScopedResource])
+                {
+                    NSLog(@"iMedia: Unable to start accessing security-scoped URL for custom folder");
+                }
+                
+                [url release];
+            }
+            else
+            {
+                NSLog(@"iMedia: Unable to resolve security-scoped bookmark for access to custom folder: %@", [error localizedDescription]);
+            }
+        }
+    });
 }
 
 
@@ -422,7 +452,7 @@
 	{
         [self populateNode:inNewNode options:inOptions error:&error];
 		
-		for (IMBNode* oldSubNode in inOldNode.subNodes)
+		for (IMBNode* oldSubNode in [[inOldNode.subNodes copy] autorelease])
 		{
 			NSString* identifier = oldSubNode.identifier;
 			IMBNode* newSubNode = [inNewNode subNodeWithIdentifier:identifier];

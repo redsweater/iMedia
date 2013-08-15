@@ -57,6 +57,9 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
+// SANDBOXING: Requires read-only temporary entitlement, relative to home directory for:
+//  * /Library/Containers/com.apple.Safari/Data/Library/Safari/Bookmarks.plist
+//  * /Library/Safari/Bookmarks.plist
 
 @interface IMBSafariBookmarkParser : IMBParser 
 {
@@ -67,7 +70,7 @@
 }
 
 @property (retain) NSString* appPath;
-@property (retain) NSDictionary* plist;
+@property (retain, nonatomic) NSDictionary* plist;
 @property (retain) NSDate* modificationDate;
 @property (retain) NSMutableDictionary* safariFaviconCache;
 

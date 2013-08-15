@@ -52,6 +52,10 @@
 
 @class WebView, IMBNode, FMDatabase;
 
+// SANDBOXING: Requires read-only temporary entitlement, relative to home directory for:
+//  * /Library/Containers/org.mozilla.firefox/Data/Library/Application Support/Firefox/Profiles/
+//  * /Library/Application Support/Firefox/Profiles/
+
 @interface IMBFireFoxParser : IMBParser 
 {
 	NSString *_appPath;

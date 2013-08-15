@@ -60,6 +60,7 @@
 #import "NSWorkspace+iMedia.h"
 #import "NSImage+iMedia.h"
 #import "IMBNodeObject.h"
+#import "IMBSandboxUtilities.h"
 #import <WebKit/WebKit.h>
 #import <Quartz/Quartz.h>
 
@@ -117,7 +118,8 @@
 
 + (NSString*) safariPath
 {
-	return [[NSWorkspace imb_threadSafeWorkspace] absolutePathForAppBundleWithIdentifier:@"com.apple.Safari"];
+	NSString* path = [[NSWorkspace imb_threadSafeWorkspace] absolutePathForAppBundleWithIdentifier:@"com.apple.Safari"];
+    return path;
 }
 
 
@@ -135,23 +137,25 @@
 + (NSArray*) parserInstancesForMediaType:(NSString*)inMediaType
 {
 	NSMutableArray* parserInstances = [NSMutableArray array];
-	
-	NSArray *libraryPaths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
-	
-	if ([libraryPaths count] > 0)
-	{
-		NSString *libraryPath = [libraryPaths objectAtIndex:0];
-
-		NSString* path = [libraryPath stringByAppendingPathComponent:@"Safari/Bookmarks.plist"];
-
-		if ([self isInstalled] && [[NSFileManager imb_threadSafeManager] fileExistsAtPath:path])
-		{
-			IMBSafariBookmarkParser* parser = [[[self class] alloc] initWithMediaType:inMediaType];
-			parser.mediaSource = path;
-			[parserInstances addObject:parser];
-			[parser release];
-		}
-	}
+    
+    NSURL *homeDir = IMBHomeDirectoryURL();
+    
+    NSArray *libraryFolders = [NSArray arrayWithObjects:    // as taken from .h
+                               [homeDir URLByAppendingPathComponent:@"Library/Containers/com.apple.Safari/Data/Library/Safari/Bookmarks.plist"],
+                               [homeDir URLByAppendingPathComponent:@"Library/Safari/Bookmarks.plist"],
+                               nil];
+    
+	for (NSURL *aURL in libraryFolders)
+    {
+        if ([self isInstalled] && [aURL checkResourceIsReachableAndReturnError:NULL])
+        {
+            IMBSafariBookmarkParser* parser = [[[self class] alloc] initWithMediaType:inMediaType];
+            parser.mediaSource = [aURL path];
+            [parserInstances addObject:parser];
+            [parser release];
+            break;
+        }
+    }
 	
 	return parserInstances;
 }

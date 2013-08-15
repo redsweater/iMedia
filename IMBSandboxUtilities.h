@@ -1,7 +1,7 @@
 /*
  iMedia Browser Framework <http://karelia.com/imedia/>
  
- Copyright (c) 2005-2012 by Karelia Software et al.
+ Copyright (c) 2005-2011 by Karelia Software et al.
  
  iMedia Browser is based on code originally developed by Jason Terhorst,
  further developed for Sandvox by Greg Hulands, Dan Wood, and Terrence Talbot.
@@ -21,7 +21,7 @@
  
 	Redistributions of source code must retain the original terms stated here,
 	including this list of conditions, the disclaimer noted below, and the
-	following copyright notice: Copyright (c) 2005-2012 by Karelia Software et al.
+	following copyright notice: Copyright (c) 2005-2011 by Karelia Software et al.
  
 	Redistributions in binary form must include, in an end-user-visible manner,
 	e.g., About window, Acknowledgments window, or similar, either a) the original
@@ -41,28 +41,26 @@
  LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH, THE
  SOFTWARE OR THE USE OF, OR OTHER DEALINGS IN, THE SOFTWARE.
- */
+*/
 
 
-// Author: Pierre Bernard
+// Author: Peter Baumgartner, Mike Abdullah
+
+
+#import <Cocoa/Cocoa.h>
 
 
 //----------------------------------------------------------------------------------------------------------------------
 
 
-#pragma mark HEADERS
+// Replacement function for NSHomeDirectory: Always return the REAL home directory of the current
+// user, even if the app is sandboxed...
 
-#import "IMBLightroom3or4Parser.h"
+NSURL* IMBHomeDirectoryURL();
 
+// Have a guess at whether we're sandboxed
 
-// SANDBOXING: Requires com.apple.security.assets.pictures.read-only entitlment (provided user hasn't moved their photos elsewhere). Also com.apple.security.temporary-exception.shared-preference.read-only for com.adobe.Lightroom3
-
-@interface IMBLightroom3Parser : IMBLightroom3or4Parser
-{
-	
-}
-
-@end
+BOOL IMBIsSandboxed();
 
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -62,6 +62,7 @@
 #import "NSWorkspace+iMedia.h"
 #import "NSFileManager+iMedia.h"
 #import "IMBTimecodeTransformer.h"
+#import "IMBSandboxUtilities.h"
 #import <Quartz/Quartz.h>
 
 
@@ -119,7 +120,7 @@
 
 + (NSString*) userSongsPath
 {
-	return [NSHomeDirectory() stringByAppendingPathComponent:@"Music/GarageBand"];
+	return [[IMBHomeDirectoryURL() path] stringByAppendingPathComponent:@"Music/GarageBand"];
 }
 
 

@@ -51,6 +51,8 @@
 #import "IMBNode.h"
 #import "IMBParserController.h"
 #import "IMBXBELParser.h"
+#import "IMBSandboxUtilities.h"
+
 
 @implementation IMBOmniWebParser
 
@@ -67,10 +69,10 @@
 {
 	if (self = [super initWithMediaType:inMediaType])
 	{
-		NSArray *appSupport = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory,NSUserDomainMask,YES);
-
-		self.mediaSource = [[appSupport objectAtIndex:0] stringByAppendingPathComponent:@"OmniWeb 5/Bookmarks.html"];
+        NSString* bookmarks = [[IMBHomeDirectoryURL() path] stringByAppendingPathComponent:@"Library/Application Support/OmniWeb 5/Bookmarks.html"];
+		self.mediaSource = bookmarks;
 	}
+    
 	return self;
 }
 

@@ -344,6 +344,11 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 
 // Create a list containing information about all loaded custom parsers. This list is stored in the prefs...
 
+#if !IMB_COMPILING_WITH_LION_OR_NEWER_SDK
+#define NSURLBookmarkCreationWithSecurityScope 0
+#define NSURLBookmarkCreationSecurityScopeAllowOnlyReadAccess 0
+#endif
+
 - (void) saveCustomParsersToPreferences
 {
 	if (_loadedParsers != nil && _loadingCustomParsers == NO)
@@ -359,10 +364,30 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 			{
 				if (parser.isCustom)
 				{
+          if (parser.bookmarkData == nil)
+          {
+            // Create URL bookmark
+            NSError* error = nil;
+            NSURL* mediaSourceURL = [NSURL fileURLWithPath:parser.mediaSource isDirectory:YES];
+              
+              parser.bookmarkData = [mediaSourceURL bookmarkDataWithOptions:NSURLBookmarkCreationWithSecurityScope|NSURLBookmarkCreationSecurityScopeAllowOnlyReadAccess
+                                             includingResourceValuesForKeys:nil
+                                                              relativeToURL:nil
+                                                                      error:&error];
+              
+            if (!parser.bookmarkData)
+            {
+              NSLog(NSLocalizedString(@"Could not create a bookmark for URL. Error: %@", @"URL bookmark creation failed."),
+                    [error localizedFailureReason]);
+            }
+          }
+          
+          // Create a dictionary with the information required for restoring the custom parser:
 					NSDictionary* info = [NSDictionary dictionaryWithObjectsAndKeys:
 						NSStringFromClass([parser class]),@"className",
 						parser.mediaSource,@"mediaSource",
 						parser.mediaType,@"mediaType",
+            parser.bookmarkData,@"bookmark",
 						nil];
 						
 					[customParsers addObject:info];	
@@ -380,6 +405,10 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 // is used to skip the saveCustomParsersToPreferences method call when calling addCustomParser:forMediaType: which
 // is totally useless while we are loading from the prefs...
 
+#if !IMB_COMPILING_WITH_LION_OR_NEWER_SDK
+#define NSURLBookmarkResolutionWithSecurityScope 0
+#endif
+
 - (void) loadCustomParsersFromPreferences
 {
 	_loadingCustomParsers = YES;
@@ -389,13 +418,42 @@ static NSMutableDictionary* sRegisteredParserClasses = nil;
 	
 	for (NSDictionary* info in customParsers)
 	{
+		// Restore access from bookmark of mediaSource. If can't get access to the folder, it's better to just pretend we've forgotten about the folder than to try and explain we know it but need to go via an Open Panel to gain access again
+        NSData *bookmark = [info objectForKey:@"bookmark"];
+        
+        NSURL *folderURL = nil;
+        if (bookmark)
+        {
+            folderURL = [NSURL URLByResolvingBookmarkData:bookmark options:NSURLBookmarkResolutionWithSecurityScope relativeToURL:nil bookmarkDataIsStale:NULL error:NULL];
+        }
+        if (!folderURL)
+        {
+            NSString *path = [info objectForKey:@"mediaSource"];
+            if (path) folderURL = [NSURL fileURLWithPath:path isDirectory:YES];
+        }
+        
+        if ([folderURL respondsToSelector:@selector(startAccessingSecurityScopedResource)])
+        {
+            if ([folderURL startAccessingSecurityScopedResource])
+            {
+                [folderURL stopAccessingSecurityScopedResource];
+            }
+            else
+            {
+                NSLog(@"iMedia: Unable to access custom folder: %@", [folderURL path]);
+                continue;
+            }
+        }
+        
+        // Create the parser and set it up again
 		Class parserClass = NSClassFromString([info objectForKey:@"className"]);
 		NSString* mediaType = [info objectForKey:@"mediaType"];
 		IMBParser* parser = [[parserClass alloc] initWithMediaType:mediaType];
 		
-		parser.mediaSource = [info objectForKey:@"mediaSource"];
+		parser.bookmarkData = bookmark;
+        parser.mediaSource = [folderURL path];
 		parser.custom = YES;
-		
+    
 		[self addCustomParser:parser forMediaType:parser.mediaType];
 		[parser release];
 	}

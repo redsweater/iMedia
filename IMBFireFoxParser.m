@@ -60,6 +60,8 @@
 #import "NSImage+iMedia.h"
 #import "NSFileManager+iMedia.h"
 #import "IMBNodeObject.h"
+#import "IMBSandboxUtilities.h"
+
 
 @interface IMBFireFoxParser ()
 + (NSString *)firefoxBookmarkPath;
@@ -117,35 +119,33 @@
 + (NSString *)firefoxBookmarkPath;
 {
 	NSString *result = nil;
-	NSArray *libraryPaths1 = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask | NSLocalDomainMask, YES);
-	NSArray *libraryPaths2 = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask | NSLocalDomainMask, YES);
-	
-	NSMutableArray *libraryPaths = [NSMutableArray arrayWithArray:libraryPaths1];
-	[libraryPaths addObjectsFromArray:libraryPaths2];
+    
+    NSURL *homeDir = IMBHomeDirectoryURL();
 
+    NSArray *libraryFolders = [NSArray arrayWithObjects:    // as taken from .h
+                               [homeDir URLByAppendingPathComponent:@"Library/Containers/org.mozilla.firefox/Data/Library/Application Support/Firefox/Profiles/"],
+                               [homeDir URLByAppendingPathComponent:@"Library/Application Support/Firefox/Profiles/"],
+                               nil];
+    
 	NSFileManager *fm = [NSFileManager imb_threadSafeManager];
-	for (NSString *path in libraryPaths)
+	for (NSURL *aURL in libraryFolders)
 	{
-		NSString *firefoxPath = [path stringByAppendingPathComponent:@"Firefox"];
-		NSString *profilesPath = [firefoxPath stringByAppendingPathComponent:@"Profiles"];
 		BOOL isDir;
-		if ([fm fileExistsAtPath:profilesPath isDirectory:&isDir] && isDir)
+		if ([fm fileExistsAtPath:[aURL path] isDirectory:&isDir] && isDir)
 		{
-			NSDirectoryEnumerator *e = [fm enumeratorAtPath:profilesPath];
-			[e skipDescendents];
-			NSString *filename = nil;
-			while ( filename = [e nextObject] )
-			{
-				if ( ![filename hasPrefix:@"."] )
-				{
-					NSString *profilePath = [profilesPath stringByAppendingPathComponent:filename];
-					NSString *bookmarkPath = [profilePath stringByAppendingPathComponent:@"places.sqlite"];
-					if ([fm fileExistsAtPath:bookmarkPath isDirectory:&isDir] && !isDir)
-					{
-						result = bookmarkPath;	// just stop on the first profile we find.  Should be good enough!
-						return result;
-					}
-				}
+			NSArray *profileURLs = [fm contentsOfDirectoryAtURL:aURL
+                                     includingPropertiesForKeys:nil
+                                                        options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                          error:NULL];
+            
+			for (NSURL *aProfileURL in profileURLs)
+            {
+                NSURL *bookmarkURL = [aProfileURL URLByAppendingPathComponent:@"places.sqlite"];
+                if ([fm fileExistsAtPath:[bookmarkURL path] isDirectory:&isDir] && !isDir)
+                {
+                    result = [bookmarkURL path];	// just stop on the first profile we find.  Should be good enough!
+                    return result;
+                }
 			}
 		}
 	}
@@ -209,7 +209,7 @@
 - (BOOL)openDatabase;
 {
 	BOOL result = NO;
-	if ([self.database open])	// Later, we could maybe do openWithFlags: SQLITE_OPEN_READONLY for speed
+	if ([self.database openWithFlags:SQLITE_OPEN_READONLY])
 	{
 		[self.database setBusyRetryTimeout:10];
 		result = YES;
