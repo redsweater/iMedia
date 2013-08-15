@@ -647,11 +647,11 @@ NSString* kIMBObjectPasteboardType = @"com.karelia.imedia.IMBObject";
 - (void) storeReceivedImageRepresentation:(id)inImageRepresentation
 {
 	self.imageRepresentation = inImageRepresentation;
+	self.needsImageRepresentation = NO;
 	self.imageVersion = _imageVersion + 1;
 	
 	if (inImageRepresentation)
 	{
-		self.needsImageRepresentation = NO;
 		[IMBObjectFifoCache addObject:self];
 	}
 	else
@@ -677,17 +677,20 @@ NSString* kIMBObjectPasteboardType = @"com.karelia.imedia.IMBObject";
 		
 			^(IMBObject* inPopulatedObject,NSError* inError)
 			{
+				// Be sure to storeReceivedImageRepresentation, even if it's nil, as this unmarks the object
+				// as needing to have its thumbnail loaded.
 				if (inError)
 				{
 					NSLog(@"%s Error trying to load thumbnail of IMBObject %@ (%@)",__FUNCTION__,self.name,inError);
+					[self storeReceivedImageRepresentation:nil];
 				}
 				else
 				{
 					[self storeReceivedImageRepresentation:inPopulatedObject.atomic_imageRepresentation];
 					if (self.metadata == nil) self.metadata = inPopulatedObject.metadata;
 					if (self.metadataDescription == nil) self.metadataDescription = inPopulatedObject.metadataDescription;
-					_isLoadingThumbnail = NO;
 				}
+				_isLoadingThumbnail = NO;
 			});
 	}
 }
