@@ -413,58 +413,61 @@ static NSMutableDictionary* sLibraryControllers = nil;
 
 	NSString* parentNodeIdentifier = inNode.parentNode.identifier;
 	IMBParserMessenger* messenger = inNode.parserMessenger;
-	SBPerformSelectorAsync(messenger.connection,messenger,@selector(populateNode:error:),inNode,
-	
-		^(IMBNode* inNewNode,NSError* inError)
-		{
-			// Got a new node. Do some consistency checks (was it populated correctly)...
-			
-			if (inError == nil)
+	if (messenger != nil)
+	{
+		SBPerformSelectorAsync(messenger.connection,messenger,@selector(populateNode:error:),inNode,
+		
+			^(IMBNode* inNewNode,NSError* inError)
 			{
-				if (inNewNode != nil && !inNewNode.isPopulated)
+				// Got a new node. Do some consistency checks (was it populated correctly)...
+				
+				if (inError == nil)
 				{
-					NSString* title = @"Programmer Error";
-					NSString* description = [NSString stringWithFormat:
-						@"The node '%@' returned by the parser %@ was not populated correctly.\n\nEither subnodes or objects is still nil.",
-						inNode.name,
-						inNewNode.parserIdentifier];
-						
-					NSDictionary* info = [NSDictionary dictionaryWithObjectsAndKeys:
-						title,@"title",
-						description,NSLocalizedDescriptionKey,
-						nil];
-						
-					inError = [NSError errorWithDomain:kIMBErrorDomain code:kIMBErrorInvalidState userInfo:info];
+					if (inNewNode != nil && !inNewNode.isPopulated)
+					{
+						NSString* title = @"Programmer Error";
+						NSString* description = [NSString stringWithFormat:
+							@"The node '%@' returned by the parser %@ was not populated correctly.\n\nEither subnodes or objects is still nil.",
+							inNode.name,
+							inNewNode.parserIdentifier];
+							
+						NSDictionary* info = [NSDictionary dictionaryWithObjectsAndKeys:
+							title,@"title",
+							description,NSLocalizedDescriptionKey,
+							nil];
+							
+						inError = [NSError errorWithDomain:kIMBErrorDomain code:kIMBErrorInvalidState userInfo:info];
+					}
 				}
-			}
-			
-			if (inError) NSLog(@"%s ERROR:\n\n%@",__FUNCTION__,inError);
-			
-			// If populating was successful we got a new node. Set the parserMessenger, and then  
-			// replace the old with the new node...
-			
-			if (inNewNode)
-			{
-				inNewNode.error = inError;
-				[self _setParserMessenger:messenger nodeTree:inNewNode];
-				[self _replaceNode:inNode withNode:inNewNode parentNodeIdentifier:parentNodeIdentifier];
-			
-				if (RESPONDS(_delegate,@selector(libraryController:didPopulateNode:)))
+				
+				if (inError) NSLog(@"%s ERROR:\n\n%@",__FUNCTION__,inError);
+				
+				// If populating was successful we got a new node. Set the parserMessenger, and then  
+				// replace the old with the new node...
+				
+				if (inNewNode)
 				{
-					[_delegate libraryController:self didPopulateNode:inNewNode];
+					inNewNode.error = inError;
+					[self _setParserMessenger:messenger nodeTree:inNewNode];
+					[self _replaceNode:inNode withNode:inNewNode parentNodeIdentifier:parentNodeIdentifier];
+				
+					if (RESPONDS(_delegate,@selector(libraryController:didPopulateNode:)))
+					{
+						[_delegate libraryController:self didPopulateNode:inNewNode];
+					}
 				}
-			}
-			
-			// If populating failed, then we'll have to keep the old node, but we'll clear the loading 
-			// state and store an error instead (which is displayed as an alert badge)...
-			
-			else
-			{
-				inNode.isLoading = NO;
-				inNode.badgeTypeNormal = kIMBBadgeTypeNone;
-				inNode.error = inError;
-			}
-		});		
+				
+				// If populating failed, then we'll have to keep the old node, but we'll clear the loading 
+				// state and store an error instead (which is displayed as an alert badge)...
+				
+				else
+				{
+					inNode.isLoading = NO;
+					inNode.badgeTypeNormal = kIMBBadgeTypeNone;
+					inNode.error = inError;
+				}
+			});		
+	}
 }
 
 
