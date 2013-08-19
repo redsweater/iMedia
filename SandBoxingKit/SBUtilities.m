@@ -243,6 +243,7 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
                  inError = [NSError errorWithDomain:kSandboxingKitErrorDomain
                                                code:kSandboxingKitErrorCouldNotComplete
                                            userInfo:info];
+					NSLog(@"Warning got XPC error %@ - %@", inError, info);
              }
              returnHandler(object, inError);
              [returnHandler release];
@@ -255,13 +256,26 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
    
     else
     {
-        id targetCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inTarget]];
-        id objectCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inObject]];
+		// Archiving/unarchiving within the process for some reason is dramatically more expensive than
+		// pushing the objects across the XPC connection. Perhaps it's not as simple as them being unarchived/
+		// re-archived? In particular the thumbnail image data seems to take a long time to transfer. I'm
+		// going to experiment with just making a simple copy instead
+		id targetCopy = [[inTarget copy] autorelease];
+		id objectCopy = [[inObject copy] autorelease];
+        //id targetCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inTarget]];
+        //id objectCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inObject]];
         
         dispatch_queue_t currentQueue = dispatch_get_current_queue();
         dispatch_retain(currentQueue);
-        
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0),^()
+
+		static dispatch_queue_t targetQueue = NULL;
+		if (targetQueue == NULL)
+		{
+			targetQueue = dispatch_queue_create("com.imedia.asynchronous", DISPATCH_QUEUE_CONCURRENT);
+			//targetQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
+		}
+
+        dispatch_async(targetQueue,^()
 		{
 			NSError* error = nil;
 			id result = nil;
@@ -279,7 +293,7 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
 			// This is extremely useful for debugging purposes, but leads to a performance hit in non-sandboxed
 			// host apps. For this reason the following line may be commented out once our code base is stable...
 			
-			result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]];
+			//result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]];
 			
 			dispatch_async(currentQueue,^()
 			{
