@@ -265,17 +265,19 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
         //id targetCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inTarget]];
         //id objectCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inObject]];
         
-        dispatch_queue_t currentQueue = dispatch_get_current_queue();
-        dispatch_retain(currentQueue);
-
-		static dispatch_queue_t targetQueue = NULL;
-		if (targetQueue == NULL)
+		static NSOperationQueue* thumbnailQueue = nil;
+		if (thumbnailQueue == nil)
 		{
-			targetQueue = dispatch_queue_create("com.imedia.asynchronous", DISPATCH_QUEUE_CONCURRENT);
-			//targetQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
+			// If we just let GCD go wild with thumbnail loading, a slow parser messenger
+			// such as one that fetches thumbnails from the network will max out GCD
+			// threads and bring the process to a stand-still. I'm not sure what the ideal
+			// concurrency is, but 8 is a lot better than freezing the app ;)
+			const NSInteger kMaximumThumbnailLoadingConcurrency = 8;
+			thumbnailQueue = [[NSOperationQueue alloc] init];
+			[thumbnailQueue setMaxConcurrentOperationCount:kMaximumThumbnailLoadingConcurrency];
 		}
 
-        dispatch_async(targetQueue,^()
+		[thumbnailQueue addOperationWithBlock:^()
 		{
 			NSError* error = nil;
 			id result = nil;
@@ -293,14 +295,8 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
 			// This is extremely useful for debugging purposes, but leads to a performance hit in non-sandboxed
 			// host apps. For this reason the following line may be commented out once our code base is stable...
 			
-			//result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]];
-			
-			dispatch_async(currentQueue,^()
-			{
-				inReturnHandler(result,error);
-				dispatch_release(currentQueue);
-			});
-	   });
+			//result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]
+	   }];
     }
 }
 
