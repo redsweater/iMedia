@@ -107,7 +107,7 @@
 	if (image==nil && imageInOurBundle!=nil)
 	{
 		NSBundle *ourBundle = [NSBundle bundleForClass:[IMBNode class]];		// iMedia bundle
-		image = [self imb_imageForResource:imageInOurBundle inBundle:ourBundle];
+		image = [self imb_imageForResource:imageInOurBundle fromBundle:ourBundle];
 	}
 	return image;
 }
