@@ -657,7 +657,7 @@ NSString* kIMBObjectPasteboardType = @"com.karelia.imedia.IMBObject";
 	else
 	{
 		self.imageRepresentationType = IKImageBrowserNSImageRepresentationType;
-		self.imageRepresentation = [NSImage imb_imageNamed:@"missing-thumbnail.jpg"];
+		self.imageRepresentation = [NSImage imb_imageNamed:@"missing-thumbnail"];
 		NSAssert(self.imageRepresentation != nil, @"Warning, clients who rely upon non-nil image representation in error state will spin forever reloading the thumbnail if we can't find the missing-thumbnail placeholder.");
 	}
 }

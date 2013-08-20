@@ -66,6 +66,22 @@
 	return [[[NSImage alloc] initWithData:aData] autorelease];
 }
 
++ (NSImage*) imb_imageForResource:(NSString*)imageName fromBundle:(NSBundle*)theBundle
+{
+	NSImage* image = nil;
+
+	// Preferable method that is available on 10.7+
+	if ([theBundle respondsToSelector:@selector(imageForResource:)])
+	{
+		image = [theBundle imageForResource:imageName];
+	}
+	else
+	{
+		NSURL *imageURL = [theBundle URLForImageResource:imageName];
+		image = [[[NSImage alloc] initWithContentsOfURL:imageURL] autorelease];
+	}
+	return image;
+}
 
 // Try to load an image out of the bundle for another application and if not found fallback to one of our own.
 + (NSImage *)imb_imageForResource:(NSString *)name fromAppWithBundleIdentifier:(NSString *)bundleID fallbackName:(NSString *)imageInOurBundle
@@ -91,15 +107,7 @@
 	if (image==nil && imageInOurBundle!=nil)
 	{
 		NSBundle *ourBundle = [NSBundle bundleForClass:[IMBNode class]];		// iMedia bundle
-        if ([ourBundle respondsToSelector:@selector(imageForResource:)])
-        {
-            image = [ourBundle imageForResource:imageInOurBundle];
-        }
-        else
-        {
-            NSURL *imageURL = [ourBundle URLForImageResource:imageInOurBundle];
-            image = [[[NSImage alloc] initWithContentsOfURL:imageURL] autorelease];
-        }
+		image = [self imb_imageForResource:imageInOurBundle inBundle:ourBundle];
 	}
 	return image;
 }
@@ -124,9 +132,8 @@
 		
 		if (image == nil)
 		{
-			NSBundle* bundle = [NSBundle bundleForClass:[IMBNode class]];	
-			NSString* path = [bundle pathForResource:inName ofType:nil];
-			image = [[NSImage alloc] initWithContentsOfFile:path];
+			NSBundle* bundle = [NSBundle bundleForClass:[IMBNode class]];
+			image = [self imb_imageForResource:inName fromBundle:bundle];
 			if (image != nil)
 			{
 				[sImageCache setObject:image forKey:inName];
