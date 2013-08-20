@@ -265,6 +265,9 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
         //id targetCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inTarget]];
         //id objectCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inObject]];
         
+        dispatch_queue_t currentQueue = dispatch_get_current_queue();
+        dispatch_retain(currentQueue);
+
 		static NSOperationQueue* thumbnailQueue = nil;
 		if (thumbnailQueue == nil)
 		{
@@ -295,7 +298,13 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
 			// This is extremely useful for debugging purposes, but leads to a performance hit in non-sandboxed
 			// host apps. For this reason the following line may be commented out once our code base is stable...
 			
-			//result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]
+			//result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]];
+			
+			dispatch_async(currentQueue,^()
+			{
+				inReturnHandler(result,error);
+				dispatch_release(currentQueue);
+			});
 	   }];
     }
 }
