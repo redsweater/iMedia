@@ -137,11 +137,10 @@
 			if (image != nil)
 			{
 				[sImageCache setObject:image forKey:inName];
-				[image release];
 			}
 		}
 	}
-	
+
 	return image;
 }
 
