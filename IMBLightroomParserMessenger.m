@@ -225,6 +225,15 @@ static dispatch_once_t sOnceToken = 0;
 		}
 	});
 
+	// Each of the individual parsers only knows to set itself to display its full name
+	// if there are more than one libraries for the specific version it covers. If a user has e.g. a Lightroom 3
+	// and a Lightroom 4 library (perhaps contrived but encountered in testing) then it should also
+	// resort to using more verbose naming.
+	if ([parsers count] > 1)
+	{
+		[parsers setValue:[NSNumber numberWithBool:YES] forKey:@"shouldDisplayLibraryName"];
+	}
+	
 	return (NSArray*)parsers;
 }
 
