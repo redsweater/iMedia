@@ -542,6 +542,9 @@ static NSArray* sSupportedUTIs = nil;
 		
 		
 		inObject.error = [NSError errorWithDomain:kIMBErrorDomain code:kIMBErrorThumbnailNotAvailable userInfo:userInfo];
+
+		// Also pass the error out to the caller
+		error = inObject.error;
 	}
 	
 //	if (imageRepresentation == NULL) {
