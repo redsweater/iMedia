@@ -157,6 +157,28 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 //@synthesize progressWindowController = _progressWindowController;
 
 
+#pragma mark Organic Setters/Getters
+
+/**
+ Sets the current node and resets the view's search field if current node changes
+ 
+ @param currentNode the node that this instance's current node is set to (retained)
+
+ @discussion
+ Does not affect the delegate-based object filter (cf. badges)
+ */
+- (void) setCurrentNode:(IMBNode *)currentNode
+{
+    if (_currentNode != currentNode)
+    {
+        [_currentNode release];
+        _currentNode = [currentNode retain];
+        
+        [self resetSearchFilter];
+    }
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 
 
@@ -999,6 +1021,18 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 }
 
 
+/**
+ Resets the search field so that all objects of current node are shown
+ 
+ @discussion
+ Does not affect the delegate-based object filter (cf. badges)
+ */
+- (void) resetSearchFilter
+{
+    [self.objectArrayController resetSearch:self];
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 
 
@@ -1008,30 +1042,6 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 
 - (void) imageBrowserSelectionDidChange:(IKImageBrowserView*)inView
 {
-	// If a missing object was selected, then display an alert...
-	
-	if (self.viewType == kIMBObjectViewTypeIcon)
-	{
-		NSArray* objects = [ibObjectArrayController selectedObjects];
-		IMBObject* object = objects.count == 1 ? [objects objectAtIndex:0] : nil;
-	
-		if (object)
-		{
-			if (object.accessibility == kIMBResourceDoesNotExist)
-			{
-				NSUInteger index = [ibObjectArrayController.arrangedObjects indexOfObjectIdenticalTo:object];
-				NSRect rect = [inView itemFrameAtIndex:index];
-				[IMBAccessRightsViewController showMissingResourceAlertForObject:object view:inView relativeToRect:rect];
-			}
-			else if (object.accessibility == kIMBResourceNoPermission)
-			{
-				[[IMBAccessRightsViewController sharedViewController]
-					imb_performCoalescedSelector:@selector(grantAccessRightsForObjectsOfNode:)
-					withObject:self.currentNode];
-			}
-		}
-	}
-	
 	// Notify the Quicklook panel of the selection change...
 	
 	QLPreviewPanel* panel = [QLPreviewPanel sharedPreviewPanel];
@@ -1177,7 +1187,39 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 //----------------------------------------------------------------------------------------------------------------------
 
 
-#pragma mark 
+#pragma mark
+#pragma mark IMBImageBrowserDelegate (informal)
+
+/**
+ If a missing object was selected, then display an alert...
+ */
+- (void) imb_imageBrowser:(IKImageBrowserView *)inView cellWasClickedAtIndex:(NSUInteger)inIndex
+{
+	if (inIndex < [[ibObjectArrayController arrangedObjects] count] &&
+        self.viewType == kIMBObjectViewTypeIcon)
+	{
+		IMBObject* object = [[ibObjectArrayController arrangedObjects] objectAtIndex:inIndex];
+        
+		if (object)
+		{
+			if (object.accessibility == kIMBResourceDoesNotExist)
+			{
+				NSUInteger index = [ibObjectArrayController.arrangedObjects indexOfObjectIdenticalTo:object];
+				NSRect rect = [inView itemFrameAtIndex:index];
+				[IMBAccessRightsViewController showMissingResourceAlertForObject:object view:inView relativeToRect:rect];
+			}
+			else if (object.accessibility == kIMBResourceNoPermission)
+			{
+				[[IMBAccessRightsViewController sharedViewController]
+                 imb_performCoalescedSelector:@selector(grantAccessRightsForObjectsOfNode:)
+                 withObject:self.currentNode];
+			}
+		}
+    }
+}
+
+
+#pragma mark
 #pragma mark NSTableViewDelegate
 
 
@@ -1616,6 +1658,18 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 			else
 			{
 				title = NSLocalizedStringWithDefaultValue(
+                          @"IMBObjectViewController.menuItem.reload",
+                          nil,IMBBundle(),
+                          @"Reload",
+                          @"Menu item in context menu of IMBObjectViewController");
+				
+				item = [[NSMenuItem alloc] initWithTitle:title action:@selector(reload:) keyEquivalent:@""];
+				[item setRepresentedObject:inObject];
+				[item setTarget:self];
+				[menu addItem:item];
+				[item release];
+				
+				title = NSLocalizedStringWithDefaultValue(
 					@"IMBObjectViewController.menuItem.download",
 					nil,IMBBundle(),
 					@"Download",
@@ -1807,13 +1861,21 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 }
 
 
-- (IBAction) download:(id)inSender
-{
+//- (IBAction) download:(id)inSender
+//{
 //	IMBParser* parser = self.currentNode.parser;
 //	NSArray* objects = [ibObjectArrayController selectedObjects];
 //	IMBObjectsPromise* promise = [parser objectPromiseWithObjects:objects];
 //	[promise setDelegate:self completionSelector:@selector(_postProcessDownload:)];
 //    [promise start];
+//}
+
+
+- (IBAction) reload:(id)inSender
+{
+	IMBObject* object = (IMBObject*)[inSender representedObject];
+    object.needsImageRepresentation = YES;
+	[object loadThumbnail];
 }
 
 
@@ -2030,13 +2092,24 @@ static NSMutableDictionary* sRegisteredObjectViewControllerClasses = nil;
 	if ([QLPreviewPanel sharedPreviewPanelExists] && [[QLPreviewPanel sharedPreviewPanel] isVisible])
 	{
 		[[QLPreviewPanel sharedPreviewPanel] orderOut:nil];
-	} 
+	}
 	else
 	{
-		QLPreviewPanel* panel = [QLPreviewPanel sharedPreviewPanel];
-		[panel makeKeyAndOrderFront:nil];
-		[ibTabView.window makeKeyWindow];	// Important to make key event handling work correctly!
-	}
+        // Quick Look only works if app is active (may yet not be active if we triggered action through contextual menu)
+        
+        [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+        
+        [ibTabView.window makeKeyWindow];   // Important to make key event handling work correctly!
+        
+		QLPreviewPanel* QLPanel = [QLPreviewPanel sharedPreviewPanel];
+
+        // Since app activation (see above) is not necessarily performed immediately
+        // (Apple: "you should not assume the application will be active immediately after sending this message")
+        // we perform subsequent method through the run loop with a little delay to try to keep execution order.
+        // Note, that merely going through the runloop with delay of 0.0 did not cut it
+        
+        [QLPanel performSelector:@selector(orderFront:) withObject:nil afterDelay:0.05];
+    }
 }
 
 

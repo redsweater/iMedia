@@ -207,19 +207,43 @@ CFTypeRef SBPreferencesCopyAppValue(CFStringRef inKey,CFStringRef inBundleIdenti
 //----------------------------------------------------------------------------------------------------------------------
 
 
-// Dispatch a message with optional argument object to a target object asynchronously. When connnection (which must 
+/**
+ returns a static semaphore of eight resources intended to restrain parallelity when dispatching events with GCD
+ 
+ @Discussion
+ We had instances where the Facebook parser hung up on us when about 60 some parallel requests were issued
+ (this might correlate with the fact that all Facebook requests reach out to the internet).
+ 
+ Going beyond eight parallel resources did not seem to gain any better performance on any of the parsers.
+ */
+dispatch_semaphore_t dispatch_semaphore()
+{
+	static dispatch_semaphore_t sSharedInstance = NULL;
+	static dispatch_once_t sOnceToken = 0;
+    
+    dispatch_once(&sOnceToken,
+                  ^{
+                      sSharedInstance = dispatch_semaphore_create(8);
+                  });
+    
+ 	return sSharedInstance;
+}
+
+
+// Dispatch a message with optional argument object to a target object asynchronously. When connnection (which must
 // be an XPCConnection) is supplied the message will be transferred to an XPC service for execution. Please note  
 // that inTarget and inObject must conform to NSCoding for this to work, or they cannot be sent across the connection. 
 // When connection is nil (e.g. running on Snow Leopard) message will be dispatched asynchronously via GCD, but the 
 // behaviour will be similar...
 
-void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObject,SBReturnValueHandler inReturnHandler)
+void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObject, dispatch_queue_t returnHandlerQueue, SBReturnValueHandler inReturnHandler)
 {
-    // If we are running sandboxed on Lion (or newer), then send a request to perform selector on target to our XPC
+    // If we have an XPC connection, then send a request to perform selector on target to our XPC
     // service and hand the results to the supplied return handler block...
     
     if (inConnection && [inConnection respondsToSelector:@selector(sendSelector:withTarget:object:returnValueHandler:)])
     {
+        [inConnection setReplyDispatchQueue:returnHandlerQueue];
         SBReturnValueHandler returnHandler = [inReturnHandler copy];
         
         [inConnection sendSelector:inSelector
@@ -250,8 +274,8 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
          }];
     }
     
-    // If we are not sandboxed (e.g. running on Snow Leopard) we'll just do the work directly (but asynchronously)
-    // via GCD queues. Once again the result is handed over to the return handler block. Please note that we are 
+    // Otherwise we'll just do the work directly (but asynchronously) via GCD queues.
+    // Once again the result is handed over to the return handler block. Please note that we are
 	// copying inTarget and inObject so they are dispatched under same premises as XPC (XPC uses archiving)...
    
     else
@@ -265,23 +289,12 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
         //id targetCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inTarget]];
         //id objectCopy = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:inObject]];
         
-        dispatch_queue_t currentQueue = dispatch_get_current_queue();
-        dispatch_retain(currentQueue);
-
-		static NSOperationQueue* thumbnailQueue = nil;
-		if (thumbnailQueue == nil)
+        dispatch_retain(returnHandlerQueue);
+        
+        dispatch_semaphore_wait(dispatch_semaphore(), DISPATCH_TIME_FOREVER);
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0),^()
 		{
-			// If we just let GCD go wild with thumbnail loading, a slow parser messenger
-			// such as one that fetches thumbnails from the network will max out GCD
-			// threads and bring the process to a stand-still. I'm not sure what the ideal
-			// concurrency is, but 8 is a lot better than freezing the app ;)
-			const NSInteger kMaximumThumbnailLoadingConcurrency = 8;
-			thumbnailQueue = [[NSOperationQueue alloc] init];
-			[thumbnailQueue setMaxConcurrentOperationCount:kMaximumThumbnailLoadingConcurrency];
-		}
-
-		[thumbnailQueue addOperationWithBlock:^()
-		{
+            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			NSError* error = nil;
 			id result = nil;
 
@@ -300,12 +313,14 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
 			
 			//result = [NSKeyedUnarchiver unarchiveObjectWithData:[NSKeyedArchiver archivedDataWithRootObject:result]];
 			
-			dispatch_async(currentQueue,^()
+			dispatch_async(returnHandlerQueue,^()
 			{
 				inReturnHandler(result,error);
-				dispatch_release(currentQueue);
+				dispatch_release(returnHandlerQueue);
 			});
-	   }];
+            [pool drain];
+            dispatch_semaphore_signal(dispatch_semaphore());
+	   });
     }
 }
 
@@ -317,9 +332,9 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
  							
 @implementation NSObject (SBPerformSelectorAsync)
 
-- (void) performAsyncSelector:(SEL)inSelector withObject:(id)inObject onConnection:(id)inConnection completionHandler:(SBReturnValueHandler)inCompletionHandler
+- (void) performAsyncSelector:(SEL)inSelector withObject:(id)inObject onConnection:(id)inConnection completionHandlerQueue:(dispatch_queue_t)inQueue completionHandler:(SBReturnValueHandler)inCompletionHandler
 {
-	SBPerformSelectorAsync(inConnection,self,inSelector,inObject,inCompletionHandler);
+	SBPerformSelectorAsync(inConnection,self,inSelector,inObject,inQueue,inCompletionHandler);
 }
 
 @end

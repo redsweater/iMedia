@@ -140,7 +140,6 @@
 			}
 		}
 	}
-
 	return image;
 }
 

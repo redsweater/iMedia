@@ -66,6 +66,7 @@
 #import "IMBFileSystemObserver.h"
 #import "NSWorkspace+iMedia.h"
 #import "NSImage+iMedia.h"
+#import "NSString+iMedia.h"
 #import "SBUtilities.h"
 #import "IMBPopover.h"
 #import <XPCKit/XPCKit.h>
@@ -257,11 +258,18 @@ static NSMutableDictionary* sLibraryControllers = nil;
 #pragma mark Loading Nodes
 
 
-// Reload behaves differently on first call and on subsequent calls. The first time around, we'll just create
-// empty (unpopulated) toplevel nodes. On subsequent calls, we will reload the existing nodes and populate 
-// them to the same level as before...
-
-- (void) reload
+/**
+ Loads all top-level nodes (first call) or reloads top-level nodes optionally filtered by flag (subsequent calls)
+ 
+ @param fileSystemBasedOnly On first call to this method is irrelevant. On subsequent calls if set to YES
+ inhibits reload of top-level nodes that are not filesystem based.
+ 
+ @discussion
+ Reload behaves differently on first call and on subsequent calls. The first time around, we'll just create
+ empty (unpopulated) toplevel nodes. On subsequent calls, we will reload the existing nodes and populate
+ them to the same level as before...
+ */
+- (void) reloadFileSystemBasedOnly:(BOOL)fileSystemBasedOnly
 {
 	NSArray* messengers = [[IMBParserController sharedParserController] loadedParserMessengersForMediaType:self.mediaType];
 
@@ -283,13 +291,25 @@ static NSMutableDictionary* sLibraryControllers = nil;
 	
 	else 
 	{
-		[self _reloadTopLevelNodes];
+		[self _reloadTopLevelNodesFileSystemBasedOnly:fileSystemBasedOnly];
 	
 		for (IMBParserMessenger* messenger in messengers)
 		{
 			[self createTopLevelNodesWithParserMessenger:messenger];
 		}
 	}
+}
+
+
+/**
+ @discussion
+ Reload behaves differently on first call and on subsequent calls. The first time around, we'll just create
+ empty (unpopulated) toplevel nodes. On subsequent calls, we will reload the existing nodes and populate
+ them to the same level as before...
+ */
+- (void) reload
+{
+    [self reloadFileSystemBasedOnly:NO];
 }
 
 
@@ -315,7 +335,7 @@ static NSMutableDictionary* sLibraryControllers = nil;
 		[_delegate libraryController:self willCreateNodeWithParserMessenger:inParserMessenger];
 	}
 	
-	SBPerformSelectorAsync(inParserMessenger.connection,inParserMessenger,@selector(unpopulatedTopLevelNodes:),nil,
+	SBPerformSelectorAsync(inParserMessenger.connection,inParserMessenger,@selector(unpopulatedTopLevelNodes:),nil, dispatch_get_main_queue(),
 	
 		^(NSArray* inNodes,NSError* inError)
 		{
@@ -378,11 +398,11 @@ static NSMutableDictionary* sLibraryControllers = nil;
 // Populate the specified node. This is done by a XPC service on our behalf. Once the service is done, 
 // it will send back a reply with the new node as a result and call the completion block...
 
-- (void) populateNode:(IMBNode*)inNode
+- (void)populateNode:(IMBNode *)inNode errorHandler:(void(^)(NSError* error))inErrorHandler
 {
 	if ([inNode isGroupNode]) return;
 	if ([inNode isPopulated]) return;
-	if ([inNode error]) return;
+//	if ([inNode error]) return;
 	
 	// Do not try to populate nodes if the backing library does not exist...
 	
@@ -415,32 +435,39 @@ static NSMutableDictionary* sLibraryControllers = nil;
 	IMBParserMessenger* messenger = inNode.parserMessenger;
 	if (messenger != nil)
 	{
-		SBPerformSelectorAsync(messenger.connection,messenger,@selector(populateNode:error:),inNode,
-		
+		SBPerformSelectorAsync(messenger.connection,
+    	                       messenger,
+        	                   @selector(populateNode:error:),
+            	               inNode,
+                	           dispatch_get_main_queue(),
+	
 			^(IMBNode* inNewNode,NSError* inError)
 			{
 				// Got a new node. Do some consistency checks (was it populated correctly)...
 				
 				if (inError == nil)
 				{
-					if (inNewNode != nil && !inNewNode.isPopulated)
+				if (inNewNode != nil && !inNewNode.isPopulated)
 					{
-						NSString* title = @"Programmer Error";
-						NSString* description = [NSString stringWithFormat:
-							@"The node '%@' returned by the parser %@ was not populated correctly.\n\nEither subnodes or objects is still nil.",
-							inNode.name,
-							inNewNode.parserIdentifier];
-							
-						NSDictionary* info = [NSDictionary dictionaryWithObjectsAndKeys:
-							title,@"title",
-							description,NSLocalizedDescriptionKey,
-							nil];
-							
-						inError = [NSError errorWithDomain:kIMBErrorDomain code:kIMBErrorInvalidState userInfo:info];
+					NSString* title = @"Programmer Error";
+					NSString* description = [NSString stringWithFormat:
+						@"The node '%@' returned by the parser %@ was not populated correctly.\n\nEither subnodes or objects is still nil.",
+						inNode.name,
+						inNewNode.parserIdentifier];
+						
+					NSDictionary* info = [NSDictionary dictionaryWithObjectsAndKeys:
+						title,@"title",
+						description,NSLocalizedDescriptionKey,
+						nil];
+						
+					inError = [NSError errorWithDomain:kIMBErrorDomain code:kIMBErrorInvalidState userInfo:info];
 					}
 				}
 				
-				if (inError) NSLog(@"%s ERROR:\n\n%@",__FUNCTION__,inError);
+				if (inError)
+        	    {
+        	        NSLog(@"%s ERROR:\n\n%@",__FUNCTION__,inError);
+        	    }
 				
 				// If populating was successful we got a new node. Set the parserMessenger, and then  
 				// replace the old with the new node...
@@ -449,25 +476,35 @@ static NSMutableDictionary* sLibraryControllers = nil;
 				{
 					inNewNode.error = inError;
 					[self _setParserMessenger:messenger nodeTree:inNewNode];
-					[self _replaceNode:inNode withNode:inNewNode parentNodeIdentifier:parentNodeIdentifier];
+						[self _replaceNode:inNode withNode:inNewNode parentNodeIdentifier:parentNodeIdentifier];
 				
 					if (RESPONDS(_delegate,@selector(libraryController:didPopulateNode:)))
-					{
-						[_delegate libraryController:self didPopulateNode:inNewNode];
+						{
+					[_delegate libraryController:self didPopulateNode:inNewNode];
 					}
 				}
 				
 				// If populating failed, then we'll have to keep the old node, but we'll clear the loading 
 				// state and store an error instead (which is displayed as an alert badge)...
-				
+	
 				else
 				{
-					inNode.isLoading = NO;
-					inNode.badgeTypeNormal = kIMBBadgeTypeNone;
+    	            inNode.isLoading = NO;
+					inNode.badgeTypeNormal = [inNode badgeTypeNormalNonLoading];
 					inNode.error = inError;
+    	            
+    	            if (inErrorHandler) {
+    	                inErrorHandler(inError);
+    	            }
 				}
-			});		
+			});
 	}
+}
+
+
+- (void) populateNode:(IMBNode *)inNode
+{
+    [self populateNode:inNode errorHandler:nil];
 }
 
 
@@ -477,7 +514,7 @@ static NSMutableDictionary* sLibraryControllers = nil;
 // Reload the specified node. This is done by a XPC service on our behalf. Once the service is done, it 
 // will send back a reply with the new node as a result and call the completion block...
 
-- (void) reloadNodeTree:(IMBNode*)inOldNode
+- (void)reloadNodeTree:(IMBNode *)inOldNode errorHandler:(void(^)(NSError* error))inErrorHandler
 {
 	if ([inOldNode isGroupNode]) return;
 
@@ -504,7 +541,11 @@ static NSMutableDictionary* sLibraryControllers = nil;
 	inOldNode.isLoading = YES;
 	inOldNode.badgeTypeNormal = kIMBBadgeTypeLoading;
 
-	SBPerformSelectorAsync(messenger.connection,messenger,@selector(reloadNodeTree:error:),inOldNode,
+	SBPerformSelectorAsync(messenger.connection,
+                           messenger,
+                           @selector(reloadNodeTree:error:),
+                           inOldNode,
+                           dispatch_get_main_queue(),
 	
 		^(IMBNode* inNewNode,NSError* inError)
 		{
@@ -516,8 +557,12 @@ static NSMutableDictionary* sLibraryControllers = nil;
 				{
 					NSLog(@"%s ERROR:\n\n%@",__FUNCTION__,inError);
 					inOldNode.isLoading = NO;
-					inOldNode.badgeTypeNormal = kIMBBadgeTypeNone;
+					inOldNode.badgeTypeNormal = [inOldNode badgeTypeNormalNonLoading];
 					inOldNode.error = inError;
+                    
+                    if (inErrorHandler) {
+                        inErrorHandler(inError);
+                    }
 				});
 			}
 			
@@ -547,10 +592,56 @@ static NSMutableDictionary* sLibraryControllers = nil;
 //----------------------------------------------------------------------------------------------------------------------
 
 
-// Reload all of our top-level nodes. Please note that we may have to look one level deep, if the 
-// nodes on the root level are group nodes...
+// Reload node tree without executing any error completion handler
 
-- (void) _reloadTopLevelNodes
+- (void) reloadNodeTree:(IMBNode*)inOldNode
+{
+    [self reloadNodeTree:inOldNode errorHandler:nil];
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+// Try to reload any top-level nodes that do not have access rights
+// (e.g. because the user granted entitlements to another URL)
+// NOTE: Will reload nodes for _all_ media types
+
++ (void) reloadTopLevelNodesWithoutAccessRights /* RelativeToURL:(NSURL*)inURL */
+{
+	NSArray* mediaTypes = [IMBLibraryController knownMediaTypes];
+//	NSString* path = [inURL path];
+    
+	for (NSString* mediaType in mediaTypes)
+	{
+		IMBLibraryController* libraryController = [IMBLibraryController sharedLibraryControllerWithMediaType:mediaType];
+		NSArray* nodes = [libraryController topLevelNodesWithoutAccessRights];
+        
+		for (IMBNode* node in nodes)
+		{
+//			if ([node.libraryRootURL.path hasPathPrefix:path])
+			{
+//				node.badgeTypeNormal = kIMBBadgeTypeLoading;
+//				node.accessibility = kIMBResourceIsAccessible; // Temporarily, so that loading wheel shows again
+                [libraryController reloadNodeTree:node];
+            }
+		}
+	}
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ Reloads top-level nodes optionally filtered by flag
+ 
+ @param fileSystemBasedOnly If set to YES only top-level nodes that are filesystem based will be reloaded
+ 
+ @discussion
+ Please note that we may have to look one level deep if the nodes on the root level are group nodes
+ */
+- (void) _reloadTopLevelNodesFileSystemBasedOnly:(BOOL)fileSystemBasedOnly
 {
 	NSArray* subnodes = [[self.subnodes copy] autorelease];
 	
@@ -562,14 +653,28 @@ static NSMutableDictionary* sLibraryControllers = nil;
 			
 			for (IMBNode* node2 in subnodes2)
 			{
-				[self _reloadTopLevelNode:node2];
+                if (!fileSystemBasedOnly || [node2.mediaSource isFileURL]) {
+                    [self _reloadTopLevelNode:node2];
+                }
 			}
 		}
 		else 
 		{
-			[self _reloadTopLevelNode:node];
+            if (!fileSystemBasedOnly || [node.mediaSource isFileURL]) {
+                [self _reloadTopLevelNode:node];
+            }
 		}
 	}
+}
+
+
+/**
+ Reloads all of our top-level nodes. Please note that we may have to look one level deep, if the
+ nodes on the root level are group nodes...
+ */
+- (void) _reloadTopLevelNodes
+{
+    [self _reloadTopLevelNodesFileSystemBasedOnly:NO];
 }
 
 
@@ -808,7 +913,7 @@ static NSMutableDictionary* sLibraryControllers = nil;
 		if (inNewNode)
 		{
 			inNewNode.isLoading = NO;
-			inNewNode.badgeTypeNormal = kIMBBadgeTypeNone;
+//			inNewNode.badgeTypeNormal = kIMBBadgeTypeNone;
 		}
 		
         // Remove empty group nodes (i.e. that do not have any subnodes). This may happen if we went 
@@ -889,7 +994,7 @@ static NSMutableDictionary* sLibraryControllers = nil;
 	}
 	else 
 	{
-		NSLog(@"%s ERROR trying to insert node at illegal index!",__FUNCTION__);
+		NSLog(@"%s ERROR trying to insert node at illegal index %lu!",__FUNCTION__, (unsigned long)inIndex);
 	}
 }
 
@@ -902,7 +1007,7 @@ static NSMutableDictionary* sLibraryControllers = nil;
 	}
 	else 
 	{
-		NSLog(@"%s ERROR trying to remove node at illegal index!",__FUNCTION__);
+		NSLog(@"%s ERROR trying to remove node at illegal index %lu!",__FUNCTION__, (unsigned long)inIndex);
 	}
 }
 
@@ -1095,8 +1200,11 @@ static NSMutableDictionary* sLibraryControllers = nil;
 			[item setTarget:inTarget];						// Normal nodes get the desired target/action
 			[item setAction:inSelector];
 			
-			if (!(inNode.accessibility == kIMBResourceIsAccessible)) // Inaccessible nodes also get a warning icon appended
+			if (!(inNode.accessibility == kIMBResourceIsAccessible) ||
+                inNode.isAccessRevocable)
 			{
+                // Nodes are badged under these circumstances
+                
 				NSFont* font = [NSFont menuFontOfSize:[NSFont systemFontSize]];
 				NSDictionary* attributes = [NSDictionary dictionaryWithObjectsAndKeys:
 					font,NSFontAttributeName,
@@ -1105,6 +1213,9 @@ static NSMutableDictionary* sLibraryControllers = nil;
                 NSString* iconName = nil;
                 switch (inNode.accessibility)
                 {
+                    case kIMBResourceIsAccessible:
+                        iconName = @"logout.tiff";
+                        break;
                     case kIMBResourceDoesNotExist:
                         iconName = @"IMBStopIcon.icns";
                         break;
@@ -1368,8 +1479,10 @@ static NSMutableDictionary* sLibraryControllers = nil;
 
 - (void) __volumesDidChange
 {
-	[IMBPopover closeAllPopovers];
-	[self reload];
+    if (IMBRunningOnLionOrNewer()) {
+        [IMBPopover closeAllPopovers];
+    }
+	[self reloadFileSystemBasedOnly:YES];
 }
 
 

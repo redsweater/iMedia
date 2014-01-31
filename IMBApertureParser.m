@@ -269,11 +269,13 @@
 
 - (NSInteger) version
 {
-	if (_version == 0)
-	{
-		_version = [[self.plist objectForKey:@"Application Version"] integerValue];
-	}
-	
+    @synchronized(self)
+    {
+        if (_version == 0)
+        {
+            _version = [[self.plist objectForKey:@"Application Version"] integerValue];
+        }
+    }	
 	return _version;
 }
 
@@ -383,7 +385,7 @@
 		case 1:	 return YES;	// Album
 		case 2:	 return YES;	// Smart album
 		case 3:	 return YES;	// Smart album
-		case 4:	 return YES;	// Project
+		case 4:	 return NO;     // Project
 		case 5:	 return NO;		// All projects
 		case 6:	 return NO;		// Folder
 		case 7:	 return NO;		// Folder
