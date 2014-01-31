@@ -243,6 +243,7 @@ void SBPerformSelectorAsync(id inConnection,id inTarget,SEL inSelector,id inObje
     
     if (inConnection && [inConnection respondsToSelector:@selector(sendSelector:withTarget:object:returnValueHandler:)])
     {
+		[inConnection setReplyDispatchQueue:returnHandlerQueue];	
         SBReturnValueHandler returnHandler = [inReturnHandler copy];
         
         [inConnection sendSelector:inSelector
