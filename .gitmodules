@@ -3,4 +3,4 @@
 	url = git@github.com:redsweater/XPCKit.git
 [submodule "PhFacebook"]
 	path = PhFacebook
-	url = git@github.com:iMediaSandboxing/PhFacebook.git
+	url = git@github.com:redsweater/PhFacebook.git
